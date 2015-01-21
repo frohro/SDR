@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SDR</string>
+
+    <string name="menu_servers">Servers</string>
+    <string name="menu_frequency">Frequency</string>
+    <string name="menu_band">Band</string>
+    <string name="menu_mode">Mode</string>
+    <string name="menu_filter">Filter</string>
+    <string name="menu_connection">Connection</string>
+    <string name="menu_receiver">Receiver</string>
+    <string name="menu_agc">AGC</string>
+    <string name="menu_dsp">DSP</string>
+    <string name="menu_gain">Gain</string>
+    <string name="menu_fps">Frames/Second</string>
+    <string name="menu_spectrum_average">Spectrum Average</string>
+    <string name="menu_tx">TX</string>
+    <string name="menu_jog_dir">Jog Direction</string>
+    <string name="menu_tx_user">TX User</string>
+    <string name="menu_mic_gain">Mic Gain</string>
+    <string name="menu_master">Master</string>
+    <string name="menu_about">About</string>
+    <string name="menu_quit">Quit</string>
+    <string name="menu_help">Help</string>
+
+    <string name="version">43</string>
+
+    <string name="filter_menu_title">Select Filter</string>
+    <string name="agc_menu_title">Select AGC</string>
+    <string name="dsp_menu_title">Select DSP Functions</string>
+    <string name="tx_menu_title">Configure Transmit</string>
+    <string name="jog_menu_title">\> \>\> Moves Spectrum</string>
+    <string name="tx_user_menu_title">Enter TX User and Password:</string>
+    <string name="mic_gain_menu_title">Select Mic Gain</string>
+    <string name="gain_menu_title">Select Gain</string>
+    <string name="fps_menu_title">Select Frames/Second</string>
+    <string name="spectrum_average_menu_title">Select Spectrum Average</string>
+    <string name="about_menu_title">About SDR</string>
+    <string name="help_menu_title">Help for the SDR Software Defined Radio</string>
+    <string name="mode_menu_title">Select a Mode</string>
+    <string name="band_menu_title">Select a Band</string>
+    <string name="frequency_menu_title">Select a Frequency in Hz</string>
+    <string name="receiver_menu_title">Select Receiver</string>
+    <string name="server_menu_title">Select a Server</string>
+    <string name="connection_menu_title">Enter server name or ip address.</string>
+
+
+
+    <string name="server_hint">The selected Server is unavailable.  Please use MENU (looks like 3 dots at bottom of your device) to select another Server.</string>
+    <string name="server_unavailable">Server Unavailable</string>
+
+
+    <string name="ok">OK</string>
+
+
+</resources>
