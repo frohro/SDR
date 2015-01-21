@@ -3,7 +3,6 @@ package org.kl7na.sdr;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import android.R.bool;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -15,7 +14,8 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.util.Log;
 
-import static android.graphics.Color.BLACK;
+import static java.lang.System.arraycopy;
+
 
 public class SpectrumView extends View implements OnTouchListener {
 
@@ -48,17 +48,17 @@ public class SpectrumView extends View implements OnTouchListener {
 	void setSensors(float sensor1,float sensor2,float sensor3) {
 		
 		if(sensor2>(-1.9F+4.0F)) {
-			connection.setFrequency((long) (connection.getFrequency() - 1000));
+			connection.setFrequency((connection.getFrequency() - 1000));
 		} else if(sensor2>(-1.9F+3.0F)) {
-			connection.setFrequency((long) (connection.getFrequency() - 100));
+			connection.setFrequency((connection.getFrequency() - 100));
 		} else if(sensor2>(-1.9F+2.0F)) {
-			connection.setFrequency((long) (connection.getFrequency() - 10));
+			connection.setFrequency((connection.getFrequency() - 10));
 		} else if(sensor2<(-1.9F-4.0F)) {
-			connection.setFrequency((long) (connection.getFrequency() + 1000));
+			connection.setFrequency((connection.getFrequency() + 1000));
 		} else if(sensor2<(-1.9F-3.0F)) {
-			connection.setFrequency((long) (connection.getFrequency() + 100));
+			connection.setFrequency((connection.getFrequency() + 100));
 		} else if(sensor2<(-1.9F-2.0F)) {
-			connection.setFrequency((long) (connection.getFrequency() + 10));
+			connection.setFrequency((connection.getFrequency() + 10));
 		}
 	}
 	
@@ -264,9 +264,10 @@ public class SpectrumView extends View implements OnTouchListener {
 		
 		if (renderer != null && mGLSurfaceView != null){
 			final byte[] bitmap = new byte[WIDTH];	// GL_LUMINANCE
-			for (int i = 0; i < WIDTH; i++){
+			/*for (int i = 0; i < WIDTH; i++){
 				bitmap[i] = samples[i];
-			}
+			}*/
+            arraycopy(samples,0,bitmap,0,WIDTH-1);//Replaced the above with this for speed.
             mGLSurfaceView.queueEvent(new Runnable() {
                 // This method will be called on the rendering
                 // thread:
@@ -302,14 +303,15 @@ public class SpectrumView extends View implements OnTouchListener {
 	public void scroll(int step) {
 		if (!vfoLocked) {
 			connection
-					.setFrequency((long) (connection.getFrequency() + (step * (connection
+					.setFrequency((connection.getFrequency() + (step * (connection
 							.getSampleRate() / WIDTH))));
 		}
 	}
 
 	public boolean onTouch(View view, MotionEvent event) {
 		detector.onTouchEvent(event);
-		if (!vfoLocked) {
+       // Log.v("pointerCount is: ", String.valueOf(event.getPointerCount()));
+		if (!vfoLocked && (event.getPointerCount()==1)) {
 			switch (event.getAction()) {
 			case MotionEvent.ACTION_CANCEL:
 				// Log.i("onTouch","ACTION_CANCEL");
@@ -481,7 +483,7 @@ public class SpectrumView extends View implements OnTouchListener {
 	
 	class JogTask extends TimerTask {
 	    public void run() {
-	    	connection.setFrequency((long) (connection.getFrequency() + jogAmount));
+	    	connection.setFrequency((connection.getFrequency() + jogAmount));
 	    	timer.schedule(new JogTask(), 250);
 	    }
 	}

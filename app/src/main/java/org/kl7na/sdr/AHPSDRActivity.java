@@ -13,6 +13,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -262,7 +263,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 			break;
 		case MotionEvent.ACTION_MOVE:
 		    Log.i("onTrackballEvent","ACTION_MOVE");
-			spectrumView.scroll(-(int) (event.getX() * 6.0)); //Rob is fiddling with this.  My aim was to allow spectrum scrolling with a set step.
+			spectrumView.scroll(-(int) (event.getX() * 6.0));
 			break;
 		}
 		return true;
@@ -564,6 +565,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
             builder = new AlertDialog.Builder(this);
             builder.setTitle(R.string.frequency_menu_title);
             final EditText freq = new EditText(this);
+            freq.setRawInputType(InputType.TYPE_CLASS_NUMBER); // numeric keypad
             freq.setText(Long.toString(connection.getFrequency()));
             builder.setView(freq);
             builder.setPositiveButton(R.string.ok, new OnClickListener() {

@@ -23,8 +23,6 @@ public class CustomAdapter extends ArrayAdapter<String>{
 	
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		// TODO Auto-generated method stub
-		//return super.getView(position, convertView, parent);
 		LayoutInflater inflater = ((Activity)context).getLayoutInflater();
 		View row=inflater.inflate(R.layout.row, parent, false);
 		TextView label=(TextView)row.findViewById(R.id.selection);
@@ -32,6 +30,7 @@ public class CustomAdapter extends ArrayAdapter<String>{
 		ImageView icon=(ImageView)row.findViewById(R.id.icon);
 		if (position == current_selection) icon.setImageResource(R.drawable.ok);
 		else icon.setImageResource(R.drawable.blue);
+        super.getView(position, convertView, parent);
 		return row;
 	}
 }
