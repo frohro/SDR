@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.InetSocketAddress;
 
+import android.app.Activity;
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord.OnRecordPositionUpdateListener;
@@ -13,6 +15,7 @@ import android.media.AudioTrack;
 import android.media.AudioRecord;
 import android.media.MediaRecorder.AudioSource;
 import android.util.Log;
+import android.widget.Toast;
 
 public class Connection extends Thread {
 	public Connection(String server, int port, int width) {
@@ -87,11 +90,11 @@ public class Connection extends Thread {
 		    
 		    
 		} catch (Exception e) {
-			Log.e("Connection", "Error creating socket for " + server + ":"
+			/*Log.e("Connection", "Error creating socket for " + server + ":"
 					+ port + "'" + e.getMessage() + "'");
-			status=e.toString();
-            Log.e("Connection","e.toString()"+" "+status+".");
-			socket=null;
+            status=e.toString();
+            Log.e("Connection","e.toString()"+" "+status+".");*/ // These messages print out over red over the white screen.
+            socket=null;
 			result = false;
 		}
 		return result;

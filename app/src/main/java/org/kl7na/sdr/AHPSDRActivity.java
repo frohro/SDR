@@ -39,6 +39,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 import android.util.DisplayMetrics;
+import android.widget.Toast;
 
 //import org.bitcoin.protocols.payments.Protos;
 //import com.google.bitcoin.core.Address;
@@ -73,13 +74,18 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 			mGLSurfaceView.setEGLContextClientVersion(2);
 			mGLSurfaceView.setEGLConfigChooser(true);
 			mGLSurfaceView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-			mGLSurfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+			//mGLSurfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 			//mGLSurfaceView.setZOrderOnTop(true);
 			renderer = new Renderer(this);
 			mGLSurfaceView.setRenderer(renderer);
 			mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 		} 
 		else { // quit if no support - get a better phone! :P
+            Context context = getApplicationContext();
+            String text = context.getString(R.string.opengl2es_unavailable);
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
 			this.finish();
 		}
 		
@@ -243,7 +249,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 		editor.putBoolean("NB", dsp_state[2]);
 		editor.putBoolean("IQ", dsp_state[3]);
 		editor.putBoolean("RXDCBlock", dsp_state[4]);
-		editor.commit();
+		editor.apply();
 	}
 
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -281,7 +287,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 		mGLSurfaceView.onResume();
 		Log.i("AHPSDR", "onResume");
 		//mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_NORMAL);
-		connection = new Connection(server, BASE_PORT+receiver, width);
+		if(connection == null) connection = new Connection(server, BASE_PORT+receiver, width);
 		setConnectionDefaults();
 		mySetTitle();
 		spectrumView.setAverage(-100);
@@ -289,10 +295,10 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 	}
 
 	public void onPause() {
-		super.onPause();
+        connection.close();
 		mGLSurfaceView.onPause();
 		Log.i("AHPSDR", "onPause");
-		connection.close();
+        super.onPause();
 		savePrefs();
 	}
 
@@ -368,6 +374,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                                 n++;
                             }
                         }
+                        serverAdapter.add(getApplicationContext().getString(R.string.connection_menu_title));
                         Log.i("servers", html);
                         servers = new CharSequence[n];
                         serverAdapter.setSelection(0);
@@ -375,93 +382,108 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                             servers[i] = temp.elementAt(i);
                             if (servers[i].toString().equals(server)) serverAdapter.setSelection(i);
                         }
+                        selectedIpItem = n;
+                        Log.i("selected","Setup selectedIpItem = :"+String.valueOf(selectedIpItem));
                     } catch (Exception e) {
                     }
                     break;
                 case R.id.action_menu_filter:
-                    filters = null;
-                    switch (connection.getMode()) {
-                        case MODE_LSB:
-                        case MODE_USB:
-                        case MODE_DSB:
-                            filters = ssbFilters;
-                            break;
-                        case MODE_CWL:
-                        case MODE_CWU:
-                            filters = cwFilters;
-                            break;
-                        case MODE_FMN:
-                            filters = fmFilters;
-                            break;
-                        case MODE_AM:
-                        case MODE_DIGU:
-                        case MODE_DIGL:
-                        case MODE_SAM:
-                            filters = amFilters;
-                            break;
-                        case MODE_SPEC:
-                        case MODE_DRM:
-                            filters = null;
-                            break;
-                    }
-                    filterAdapter.clear();
-                    if (filters != null) {
-                        for (int i = 0; i < 10; i++) filterAdapter.add(filters[i].toString());
-                        filterAdapter.setSelection(filter);
-                    }
-                    break;
-                case R.id.action_menu_band:
-                    if (!connection.getHasBeenSlave()) {        // update band specific default freq
-                        switch (connection.getBand()) {
-                            case BAND_160:
-                                band_160_freq = connection.getFrequency();
+                    try {
+                        filters = null;
+                        switch (connection.getMode()) {
+                            case MODE_LSB:
+                            case MODE_USB:
+                            case MODE_DSB:
+                                filters = ssbFilters;
                                 break;
-                            case BAND_80:
-                                band_80_freq = connection.getFrequency();
+                            case MODE_CWL:
+                            case MODE_CWU:
+                                filters = cwFilters;
                                 break;
-                            case BAND_60:
-                                band_60_freq = connection.getFrequency();
+                            case MODE_FMN:
+                                filters = fmFilters;
                                 break;
-                            case BAND_40:
-                                band_40_freq = connection.getFrequency();
+                            case MODE_AM:
+                            case MODE_DIGU:
+                            case MODE_DIGL:
+                            case MODE_SAM:
+                                filters = amFilters;
                                 break;
-                            case BAND_30:
-                                band_30_freq = connection.getFrequency();
-                                break;
-                            case BAND_20:
-                                band_20_freq = connection.getFrequency();
-                                break;
-                            case BAND_17:
-                                band_17_freq = connection.getFrequency();
-                                break;
-                            case BAND_15:
-                                band_15_freq = connection.getFrequency();
-                                break;
-                            case BAND_12:
-                                band_12_freq = connection.getFrequency();
-                                break;
-                            case BAND_10:
-                                band_10_freq = connection.getFrequency();
-                                break;
-                            case BAND_6:
-                                band_6_freq = connection.getFrequency();
-                                break;
-                            case BAND_GEN:
-                                band_gen_freq = connection.getFrequency();
-                                break;
-                            case BAND_WWV:
-                                band_wwv_freq = connection.getFrequency();
+                            case MODE_SPEC:
+                            case MODE_DRM:
+                                filters = null;
                                 break;
                         }
+                        filterAdapter.clear();
+                        if (filters != null) {
+                            for (int i = 0; i < 10; i++) filterAdapter.add(filters[i].toString());
+                            filterAdapter.setSelection(filter);
+                        }
+                    }
+                        catch (Exception e) {
+                        }
+                    break;
+                case R.id.action_menu_band:
+                    Log.i("rotate_debugging","Line 425");
+                    try {
+                        if (!connection.getHasBeenSlave()) {        // update band specific default freq
+                            switch (connection.getBand()) {
+                                case BAND_160:
+                                    band_160_freq = connection.getFrequency();
+                                    break;
+                                case BAND_80:
+                                    band_80_freq = connection.getFrequency();
+                                    break;
+                                case BAND_60:
+                                    band_60_freq = connection.getFrequency();
+                                    break;
+                                case BAND_40:
+                                    band_40_freq = connection.getFrequency();
+                                    break;
+                                case BAND_30:
+                                    band_30_freq = connection.getFrequency();
+                                    break;
+                                case BAND_20:
+                                    band_20_freq = connection.getFrequency();
+                                    break;
+                                case BAND_17:
+                                    band_17_freq = connection.getFrequency();
+                                    break;
+                                case BAND_15:
+                                    band_15_freq = connection.getFrequency();
+                                    break;
+                                case BAND_12:
+                                    band_12_freq = connection.getFrequency();
+                                    break;
+                                case BAND_10:
+                                    band_10_freq = connection.getFrequency();
+                                    break;
+                                case BAND_6:
+                                    band_6_freq = connection.getFrequency();
+                                    break;
+                                case BAND_GEN:
+                                    band_gen_freq = connection.getFrequency();
+                                    break;
+                                case BAND_WWV:
+                                    band_wwv_freq = connection.getFrequency();
+                                    break;
+                            }
+                        }
+                    }
+                    catch (Exception e) {
                     }
                     break;
                 case R.id.action_menu_tx_user: // No need to see these menus if TX isn't set.
                 case R.id.action_menu_master:
                 case R.id.action_menu_mic_gain:
-                    if(!connection.getAllowTx()) {
-                        menu.getItem(menu_number).setVisible(false);
-                    } else {
-                        menu.getItem(menu_number).setVisible(true);
+                    try {
+                        if (!connection.getAllowTx()) {
+                            menu.getItem(menu_number).setVisible(false);
+                        } else {
+                            menu.getItem(menu_number).setVisible(true);
+                        }
+                    }
+                    catch (Exception e) {
                     }
             }
             spectrumView.setAverage(-100);
@@ -492,29 +514,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
             this.finish();
             break;
 		case R.id.action_menu_connection:
-			builder = new AlertDialog.Builder(this);
-			builder.setTitle("Enter server name or ip address.");
-			final EditText input = new EditText(this);
-			input.setText(server);
-			builder.setView(input);
-			builder.setPositiveButton(R.string.ok, new OnClickListener() {
-				public void onClick(DialogInterface dialog, int whichButton) {
-					String value = input.getText().toString().trim();
-					Log.i("Server",value);
-					mode=connection.getMode();
-					frequency=connection.getFrequency();
-					band = connection.getBand();
-					filterLow=connection.getFilterLow();
-					filterHigh=connection.getFilterHigh();
-					connection.close();
-					server=value;
-                    receiver = RX_0; // Most servers have only one receiver, RX_0.
-					connection = new Connection(server, BASE_PORT + receiver,width);
-					setConnectionDefaults();
-					mySetTitle();
-					dialog.dismiss();
-				}
-			});
+            builder = chooseServer(this);
 			dialog = builder.create();
 			break;
 		case R.id.action_menu_servers:
@@ -523,18 +523,24 @@ public boolean onOptionsItemSelected(MenuItem item) {
 			builder.setAdapter(serverAdapter,
 					new OnClickListener() {
 						public void onClick(DialogInterface dialog, int item) {
-							Log.i("selected",servers[item].toString());
-							mode=connection.getMode();
-							frequency=connection.getFrequency();
-							band=connection.getBand();
-							filterLow=connection.getFilterLow();
-							filterHigh=connection.getFilterHigh();
-							connection.close();
-							server=servers[item].toString();	
-							connection = new Connection(server, BASE_PORT + receiver,width);
-							setConnectionDefaults();
-							mySetTitle();
-							dialog.dismiss();
+                            Log.i("selected", "Value of item:" + String.valueOf(item));
+                            if(item == selectedIpItem) {
+                                Log.i("selected", "Picked Connect!");
+                                chooseServer(getApplicationContext());
+                            } else {
+                                Log.i("selected", servers[item].toString());
+                                mode = connection.getMode();
+                                frequency = connection.getFrequency();
+                                band = connection.getBand();
+                                filterLow = connection.getFilterLow();
+                                filterHigh = connection.getFilterHigh();
+                                connection.close();
+                                server = servers[item].toString();
+                                connection = new Connection(server, BASE_PORT + receiver, width);
+                                setConnectionDefaults();
+                                mySetTitle();
+                                dialog.dismiss();
+                            }
 						}
 			});       
 			dialog = builder.create();
@@ -1134,7 +1140,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
 							}
 						}
 					});
-			builder.setPositiveButton("SAVE", new OnClickListener(){
+			builder.setPositiveButton(R.string.save, new OnClickListener(){
 				public void onClick(DialogInterface dialog, int which){
 					dialog.dismiss();
 					}
@@ -1291,8 +1297,36 @@ public boolean onOptionsItemSelected(MenuItem item) {
     return super.onOptionsItemSelected(item);
 
 }
-	
-	/**
+
+    private AlertDialog.Builder chooseServer(Context context) {
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(context);
+        builder.setTitle("Enter server name or ip address.");
+        final EditText input = new EditText(context);
+        input.setText(server);
+        builder.setView(input);
+        builder.setPositiveButton(R.string.ok, new OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String value = input.getText().toString().trim();
+                Log.i("Server", value);
+                mode=connection.getMode();
+                frequency=connection.getFrequency();
+                band = connection.getBand();
+                filterLow=connection.getFilterLow();
+                filterHigh=connection.getFilterHigh();
+                connection.close();
+                server=value;
+receiver = RX_0; // Most servers have only one receiver, RX_0.
+                connection = new Connection(server, BASE_PORT + receiver,width);
+                setConnectionDefaults();
+                mySetTitle();
+                dialog.dismiss();
+            }
+        });
+        return builder;
+    }
+
+    /**
 	 * Detects if OpenGL ES 2.0 exists
 	 * @return true if it does
 	 */
@@ -1311,9 +1345,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
 		result = connection.connect();
 		if (!result){	
 			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-			// set title
 			alertDialogBuilder.setTitle(R.string.server_unavailable);
-			// set dialog message
 			alertDialogBuilder
 				.setMessage(R.string.server_hint)
 				.setCancelable(false)
@@ -1324,9 +1356,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
 						if (connection != null) connection.close();
 					}
 				  });
-				// create alert dialog
 				AlertDialog alertDialog = alertDialogBuilder.create();
-				// show it
 				alertDialog.show();
 		};
 		connection.start();
@@ -1386,6 +1416,16 @@ public boolean onOptionsItemSelected(MenuItem item) {
 			}
 	    }
 	}
+
+    public void showToast(final String toast)
+    {
+        runOnUiThread(new Runnable() {
+            public void run()
+            {
+                Toast.makeText(AHPSDRActivity.this, toast, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 	
 	// Handle bitcoin Donation
 	
@@ -1603,5 +1643,7 @@ public boolean onOptionsItemSelected(MenuItem item) {
 	private static final String[] DONATION_ADDRESSES_MAINNET = { "12voruGfjz6LNTQeq8DyXD7U5kRQkfCTTW", "18rB6RA6Tc75sZCRGDyBbrtWd82RrpmEPo" };
 	private static final String[] DONATION_ADDRESSES_TESTNET = { "my16ohVdTJK5w5eba6AbTRLatsN3gpGLaK", "mg2Y2CRKK1ACQcNBEUVFRSM7pHeu4kBxuF" };
 	private static final int REQUEST_CODE = 0;
+
+    private int selectedIpItem;
 	
 }

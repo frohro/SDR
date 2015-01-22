@@ -54,15 +54,17 @@
     <item android:id="@+id/action_menu_about"
         android:title="@string/menu_about"
         android:showAsAction="never"/>
-    <item android:id="@+id/action_menu_quit"
-        android:title="@string/menu_quit"
-        android:showAsAction="never"/>
     <item android:id="@+id/action_menu_help"
         android:title="@string/menu_help"
         android:showAsAction="never"/>
+    <item android:id="@+id/action_menu_quit"
+        android:title="@string/menu_quit"
+        android:showAsAction="never"/>
+
     <!-- Add other menu items here, and in AHPSDRActivity put them
     under the onOptionsItemSelected(MenuItem item) method.  See
-    https://developer.android.com/training/basics/actionbar/adding-buttons.html-->
+    https://developer.android.com/training/basics/actionbar/adding-buttons.html
+    -->
 
     menu.add(0, MENU_SERVERS, 0, "Servers"); //kb3omm reordered the menu to my likings
     menu.add(0, MENU_BAND, 0, "Band");
