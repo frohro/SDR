@@ -19,7 +19,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
 import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
 import android.graphics.PixelFormat;
@@ -347,6 +346,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         int i = 0;
                         int j;
                         serverAdapter.clear();
+                        serverAdapter.add(getApplicationContext().getString(R.string.connection_menu_title));
                         while ((i = html.indexOf("<tr><td>", i)) != -1) {
                             i += 8;
                             j = html.indexOf("</td>", i);
@@ -374,16 +374,13 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                                 n++;
                             }
                         }
-                        serverAdapter.add(getApplicationContext().getString(R.string.connection_menu_title));
                         Log.i("servers", html);
                         servers = new CharSequence[n];
                         serverAdapter.setSelection(0);
                         for (i = 0; i < n; i++) {
                             servers[i] = temp.elementAt(i);
-                            if (servers[i].toString().equals(server)) serverAdapter.setSelection(i);
+                            if (servers[i].toString().equals(server)) serverAdapter.setSelection(i+1);
                         }
-                        selectedIpItem = n;
-                        Log.i("selected","Setup selectedIpItem = :"+String.valueOf(selectedIpItem));
                     } catch (Exception e) {
                     }
                     break;
@@ -513,37 +510,13 @@ public boolean onOptionsItemSelected(MenuItem item) {
         case R.id.action_menu_quit:
             this.finish();
             break;
-		case R.id.action_menu_connection:
-            builder = chooseServer(this);
+		/*case R.id.action_menu_connection:
+            builder = enterServerManually();
 			dialog = builder.create();
-			break;
+			break;*/
 		case R.id.action_menu_servers:
-            builder = new AlertDialog.Builder(this);
-			builder.setTitle(R.string.server_menu_title);
-			builder.setAdapter(serverAdapter,
-					new OnClickListener() {
-						public void onClick(DialogInterface dialog, int item) {
-                            Log.i("selected", "Value of item:" + String.valueOf(item));
-                            if(item == selectedIpItem) {
-                                Log.i("selected", "Picked Connect!");
-                                chooseServer(getApplicationContext());
-                            } else {
-                                Log.i("selected", servers[item].toString());
-                                mode = connection.getMode();
-                                frequency = connection.getFrequency();
-                                band = connection.getBand();
-                                filterLow = connection.getFilterLow();
-                                filterHigh = connection.getFilterHigh();
-                                connection.close();
-                                server = servers[item].toString();
-                                connection = new Connection(server, BASE_PORT + receiver, width);
-                                setConnectionDefaults();
-                                mySetTitle();
-                                dialog.dismiss();
-                            }
-						}
-			});       
-			dialog = builder.create();
+            builder = chooseServer();
+            dialog = builder.create();
 			break;
 		case R.id.action_menu_receiver:
 			builder = new AlertDialog.Builder(this);
@@ -1298,15 +1271,46 @@ public boolean onOptionsItemSelected(MenuItem item) {
 
 }
 
-    private AlertDialog.Builder chooseServer(Context context) {
+    private AlertDialog.Builder chooseServer() {
         AlertDialog.Builder builder;
-        builder = new AlertDialog.Builder(context);
-        builder.setTitle("Enter server name or ip address.");
-        final EditText input = new EditText(context);
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.server_menu_title);
+        builder.setAdapter(serverAdapter,
+                new OnClickListener() {
+                    public void onClick(DialogInterface dialog, int item) {
+                    Log.i("selected", "Value of item:" + String.valueOf(item));
+                    if (item == 0) {
+                        Log.i("selected", "Picked Connect!");
+                        enterServerManually();
+                    } else {
+                        Log.i("selected", servers[item-1].toString());
+                        mode = connection.getMode();
+                        frequency = connection.getFrequency();
+                        band = connection.getBand();
+                        filterLow = connection.getFilterLow();
+                        filterHigh = connection.getFilterHigh();
+                        connection.close();
+                        server = servers[item-1].toString();
+                        connection = new Connection(server, BASE_PORT + receiver, width);
+                        setConnectionDefaults();
+                        mySetTitle();
+                    }
+                    dialog.dismiss();
+                }
+        });
+        builder.show();
+        return builder;
+    }
+
+    private AlertDialog.Builder enterServerManually() {
+        AlertDialog.Builder builder;
+        builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.connection_menu_title);
+        final EditText input = new EditText(this);
         input.setText(server);
         builder.setView(input);
         builder.setPositiveButton(R.string.ok, new OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
+            public void onClick(DialogInterface ipDialog, int whichButton) {
                 String value = input.getText().toString().trim();
                 Log.i("Server", value);
                 mode=connection.getMode();
@@ -1316,13 +1320,14 @@ public boolean onOptionsItemSelected(MenuItem item) {
                 filterHigh=connection.getFilterHigh();
                 connection.close();
                 server=value;
-receiver = RX_0; // Most servers have only one receiver, RX_0.
+                receiver = RX_0; // Most servers have only one receiver, RX_0.
                 connection = new Connection(server, BASE_PORT + receiver,width);
                 setConnectionDefaults();
                 mySetTitle();
-                dialog.dismiss();
+                ipDialog.dismiss();
             }
         });
+        builder.show();
         return builder;
     }
 
@@ -1344,7 +1349,7 @@ receiver = RX_0; // Most servers have only one receiver, RX_0.
 		connection.setSpectrumView(spectrumView);
 		result = connection.connect();
 		if (!result){	
-			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+			/*AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
 			alertDialogBuilder.setTitle(R.string.server_unavailable);
 			alertDialogBuilder
 				.setMessage(R.string.server_hint)
@@ -1357,8 +1362,18 @@ receiver = RX_0; // Most servers have only one receiver, RX_0.
 					}
 				  });
 				AlertDialog alertDialog = alertDialogBuilder.create();
-				alertDialog.show();
-		};
+				alertDialog.show();*/
+            Context context = getApplicationContext();
+            int duration = Toast.LENGTH_LONG;
+            Toast toast = Toast.makeText(context, context.getString(R.string.server_hint),
+                    duration);
+            toast.show();
+//            try {
+//            Thread.sleep(3000);}
+//            catch (Exception e) {
+//            }
+            chooseServer();
+		}
 		connection.start();
 		connection.sendCommand("q-master");
 	    connection.sendCommand("setClient SDR(" +this.getString(R.string.version)+")");

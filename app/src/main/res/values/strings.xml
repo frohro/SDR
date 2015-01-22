@@ -46,7 +46,7 @@
 
 
 
-    <string name="server_hint">The selected Server is unavailable.  Please use MENU (looks like 3 dots at bottom of your device) to select another Server.</string>
+    <string name="server_hint">The selected Server is unavailable.  Please select another Server.</string>
     <string name="server_unavailable">Server Unavailable</string>
     <string name="opengl2es_unavailable">OpenGL ES 2.0 or greater required, but not found.  Sorry!</string>
 
