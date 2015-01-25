@@ -65,7 +65,7 @@ public class SpectrumView extends View implements OnTouchListener {
 	protected void onDraw(Canvas canvas) {
 		if (connection.isConnected()) {
 			float zoom_factor;
-			
+
 			if (connection.getIsSlave()){
 				scaleFactor = (float)connection.getScaleFactor();
 				mGLSurfaceView.setScaleFactor(scaleFactor);
@@ -140,7 +140,7 @@ public class SpectrumView extends View implements OnTouchListener {
 			                                       (connection.getFrequency()%1000));
 			canvas.drawText(fs + " "
 					+ connection.getStringMode(), 100, 30, paint);
-			
+
 			//DEBUG
 			//canvas.drawText(Integer.toString(waterfallLow), WIDTH/2, 30, paint);
 
@@ -192,7 +192,7 @@ public class SpectrumView extends View implements OnTouchListener {
 				paint.setColor(Color.RED);
 				canvas.drawText(status, 0, 10, paint);
 			}
-			
+
 			// draw the jog and PTT buttons
 			paint.setColor(Color.TRANSPARENT);
 			canvas.drawRect(0, HEIGHT-66, 50, HEIGHT-16, paint);
@@ -202,7 +202,7 @@ public class SpectrumView extends View implements OnTouchListener {
             if (connection.getAllowTx()){
             	paint.setColor(connection.getMOX()? Color.RED : Color.TRANSPARENT);
             	canvas.drawRect(WIDTH-50, 100, WIDTH, HEIGHT-100, paint);
-            }     
+            }
             paint.setColor(Color.WHITE);
             paint.setTextSize(30.0F);
             canvas.drawText("<", 12, HEIGHT-28, paint);

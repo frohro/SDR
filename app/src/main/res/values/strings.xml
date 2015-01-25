@@ -47,6 +47,8 @@
 
 
     <string name="server_hint">The selected Server is unavailable.  Please select another Server.</string>
+    <string name ="receiver_server_hint">Most servers have only one receiver available,
+        so you may need to change the Receivers setting to 0.</string>
     <string name="server_unavailable">Server Unavailable</string>
     <string name="opengl2es_unavailable">OpenGL ES 2.0 or greater required, but not found.  Sorry!</string>
 
