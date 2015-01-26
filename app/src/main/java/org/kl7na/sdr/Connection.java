@@ -336,79 +336,85 @@ public class Connection extends Thread {
 		}
 	}
 	
-	private void processAnswerBuffer(int length, byte[] buffer){
-		byte[] answer_buff = new byte[length];
-		for (int i = 0; i < length; i++) answer_buff[i] = buffer[i];
-		String full_string = new String(answer_buff);
-		if (full_string.indexOf("q-master") == 0){
-			answer = full_string.substring(9);
-			if (answer.indexOf("slave") != -1) {
-				isSlave = true;
-				hasBeenSlave = true;
-			}
-			else isSlave = false;
-		}
-		else if (full_string.indexOf("q-info") == 0 && isSlave){
-			int freq_pos = full_string.indexOf(";f;");
-			int mode_pos = full_string.indexOf(";m;");
-			int mode_end_pos = full_string.indexOf(";", mode_pos+3);
-			String freq_string = full_string.substring(freq_pos+3, mode_pos);
-			this.frequency = Integer.valueOf(freq_string);
-			setBand(frequency);
-			String mode_string = full_string.substring(mode_pos+3, mode_end_pos);
-			this.mode = Integer.valueOf(mode_string);
-			switch (mode) {
-				case AHPSDRActivity.MODE_LSB:
-					setFilter(-3050, -150);
-					break;
-				case AHPSDRActivity.MODE_USB:
-					setFilter(150, 3050);
-					break;
-				case AHPSDRActivity.MODE_DSB:
-					setFilter(-2900, 2900);
-					break;
-				case AHPSDRActivity.MODE_CWL:
-					setFilter(-cwPitch - 250,
-							-cwPitch + 250);
-					break;
-				case AHPSDRActivity.MODE_CWU:
-					setFilter(cwPitch - 250,
-							cwPitch + 250);
-					break;
-				case AHPSDRActivity.MODE_FMN:
-				case AHPSDRActivity.MODE_AM:
-				case AHPSDRActivity.MODE_DIGU:
-				case AHPSDRActivity.MODE_DIGL:
-				case AHPSDRActivity.MODE_SAM:
-					setFilter(-3300, 3300);
-					break;
-				case AHPSDRActivity.MODE_SPEC:
-					break;
-				case AHPSDRActivity.MODE_DRM:
-					break;
-			}
-			int zoom_pos = full_string.indexOf(";z;");
-			if (zoom_pos != -1){
-				int zoom_end_pos = full_string.indexOf(";", zoom_pos+3);
-				String zoom_string = full_string.substring(zoom_pos+3, zoom_end_pos);
-				zoom = Integer.valueOf(zoom_string);
-				if (zoom < MIN_ZOOM) zoom = MIN_ZOOM;
-				if (zoom > MAX_ZOOM) zoom = MAX_ZOOM;
-			}
-			int low_pos = full_string.indexOf(";l;");
-			if (low_pos != -1){
-				int low_end_pos = full_string.indexOf(";", low_pos+3);
-				String low_string = full_string.substring(low_pos+3, low_end_pos);
-				filterLow = Integer.valueOf(low_string);
-			}
-			int high_pos = full_string.indexOf(";r;");
-			if (high_pos != -1){
-				int high_end_pos = full_string.indexOf(";", high_pos+3);
-				String high_string = full_string.substring(high_pos+3, high_end_pos);
-				filterHigh = Integer.valueOf(high_string);
-			}
-		}
-	}
+	private void processAnswerBuffer(int length, byte[] buffer) {
+        byte[] answer_buff = new byte[length];
+        for (int i = 0; i < length; i++) answer_buff[i] = buffer[i];
+        String full_string = new String(answer_buff);
+        if (full_string.startsWith("*")) {
+            Log.i("Hardware", "Hardware returns :" + full_string);
+            if (full_string.startsWith("*hardware? OK ")) {
+                hardware= full_string.substring(14);
+                Log.i("Hardware","hardware is: "+hardware);
+            }
+        } else {
+            if (full_string.indexOf("q-master") == 0) {
+                answer = full_string.substring(9);
+                if (answer.indexOf("slave") != -1) {
+                    isSlave = true;
+                    hasBeenSlave = true;
+                } else isSlave = false;
+            } else if (full_string.indexOf("q-info") == 0 && isSlave) {
+                int freq_pos = full_string.indexOf(";f;");
+                int mode_pos = full_string.indexOf(";m;");
+                int mode_end_pos = full_string.indexOf(";", mode_pos + 3);
+                String freq_string = full_string.substring(freq_pos + 3, mode_pos);
+                this.frequency = Integer.valueOf(freq_string);
+                setBand(frequency);
+                String mode_string = full_string.substring(mode_pos + 3, mode_end_pos);
+                this.mode = Integer.valueOf(mode_string);
+                switch (mode) {
+                    case AHPSDRActivity.MODE_LSB:
+                        setFilter(-3050, -150);
+                        break;
+                    case AHPSDRActivity.MODE_USB:
+                        setFilter(150, 3050);
+                        break;
+                    case AHPSDRActivity.MODE_DSB:
+                        setFilter(-2900, 2900);
+                        break;
+                    case AHPSDRActivity.MODE_CWL:
+                        setFilter(-cwPitch - 250,
+                                -cwPitch + 250);
+                        break;
+                    case AHPSDRActivity.MODE_CWU:
+                        setFilter(cwPitch - 250,
+                                cwPitch + 250);
+                        break;
+                    case AHPSDRActivity.MODE_FMN:
+                    case AHPSDRActivity.MODE_AM:
+                    case AHPSDRActivity.MODE_DIGU:
+                    case AHPSDRActivity.MODE_DIGL:
+                    case AHPSDRActivity.MODE_SAM:
+                        setFilter(-3300, 3300);
+                        break;
+                    case AHPSDRActivity.MODE_SPEC:
+                        break;
+                    case AHPSDRActivity.MODE_DRM:
+                        break;
+                }
+                int zoom_pos = full_string.indexOf(";z;");
+                if (zoom_pos != -1) {
+                    int zoom_end_pos = full_string.indexOf(";", zoom_pos + 3);
+                    String zoom_string = full_string.substring(zoom_pos + 3, zoom_end_pos);
+                    zoom = Integer.valueOf(zoom_string);
+                    if (zoom < MIN_ZOOM) zoom = MIN_ZOOM;
+                    if (zoom > MAX_ZOOM) zoom = MAX_ZOOM;
+                }
+                int low_pos = full_string.indexOf(";l;");
+                if (low_pos != -1) {
+                    int low_end_pos = full_string.indexOf(";", low_pos + 3);
+                    String low_string = full_string.substring(low_pos + 3, low_end_pos);
+                    filterLow = Integer.valueOf(low_string);
+                }
+                int high_pos = full_string.indexOf(";r;");
+                if (high_pos != -1) {
+                    int high_end_pos = full_string.indexOf(";", high_pos + 3);
+                    String high_string = full_string.substring(high_pos + 3, high_end_pos);
+                    filterHigh = Integer.valueOf(high_string);
+                }
+            }
+        }
+    }
 
 	public synchronized void sendCommand(String command) {
 
@@ -666,6 +672,10 @@ public class Connection extends Thread {
 		hasBeenSlave = state;
 	}
 
+    public String getHardware() {
+        return hardware;
+    }
+
 	private SpectrumView spectrumView;
 
 	private static final int BUFFER_TYPE_SIZE = 1;
@@ -728,6 +738,8 @@ public class Connection extends Thread {
 	private final int nMicBuffers = 2;
 	private int micGain = 0;
 	private boolean allowTx = false;
+
+    private String hardware = "Unknown hardware";
 	
 	private static short[] aLawDecode = new short[256];
 	private static byte[] aLawEncode = new byte[65536];

@@ -494,6 +494,18 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                     catch (Exception e) {
                     }
                     break;
+                case R.id.action_menu_attenuator:
+                        try {
+                            if(!connection.getHardware().contentEquals("Hermes")) { // Better check other units.
+                                Log.i("Hardware","Hardware is not Hermes. "+ connection.getHardware());
+                                menu.getItem(menu_number).setVisible(false);
+                            } else {
+                                menu.getItem(menu_number).setVisible(true);
+                            }
+                        }
+                        catch (Exception e) {
+                        }
+                        break;
                 case R.id.action_menu_tx_user: // No need to see these menus if TX isn't set.
                 case R.id.action_menu_master:
                 case R.id.action_menu_mic_gain:
@@ -1420,6 +1432,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         connection.setSpectrumView(spectrumView);
         result = connection.connect();
         connection.start(); //Crash here. Fix this.
+        connection.sendCommand("*hardware?");
         connection.sendCommand("q-master");
         connection.sendCommand("setClient SDR(" +this.getString(R.string.version)+")");
         connection.setFrequency(frequency);
@@ -1472,7 +1485,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 
     private Runnable updateTitle = new Runnable() {
         public void run(){
-            setTitle("SDR: "+server+" (rx"+receiver+") "+qAnswer);
+            setTitle("SDR: "+server+" (rx"+receiver+") "+qAnswer+" "+ connection.getHardware());
         }
     };
 
