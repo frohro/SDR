@@ -10,6 +10,7 @@
     <string name="menu_connection">Connection</string>
     <string name="menu_receiver">Receiver</string>
     <string name="menu_agc">AGC</string>
+    <string name="menu_attenuator">Attenuator</string>
     <string name="menu_dsp">DSP</string>
     <string name="menu_gain">Gain</string>
     <string name="menu_fps">Frames/Second</string>
@@ -27,6 +28,7 @@
 
     <string name="filter_menu_title">Select Filter</string>
     <string name="agc_menu_title">Select AGC</string>
+    <string name="attenuator_menu_title">Attenuator</string>
     <string name="dsp_menu_title">Select DSP Functions</string>
     <string name="tx_menu_title">Configure Transmit</string>
     <string name="jog_menu_title">\> \>\> Moves Spectrum</string>
@@ -44,7 +46,22 @@
     <string name="server_menu_title">Select a Server</string>
     <string name="connection_menu_title">Enter server name or ip address.</string>
 
+    <string-array
+        name="agc_state">
+        <item>OFF</item>
+        <item>LONG</item>
+        <item>SLOW</item>
+        <item>MEDIUM</item>
+        <item>FAST</item>
+    </string-array>
 
+    <string-array
+        name="attenuator_state">
+        <item>0 dB</item>
+        <item>10 dB</item>
+        <item>20 dB</item>
+        <item>30 dB</item>
+    </string-array>
 
     <string name="server_hint">The selected Server is unavailable.  Please select another Server.</string>
     <string name ="receiver_server_hint">Most servers have only one receiver available,

@@ -24,6 +24,9 @@
     <item android:id="@+id/action_menu_agc"
         android:title="@string/menu_agc"
         android:showAsAction="never"/>
+    <item android:id="@+id/action_menu_attenuator"
+        android:title="@string/menu_attenuator"
+        android:showAsAction="never"/>
     <item android:id="@+id/action_menu_gain"
         android:title="@string/menu_gain"
         android:showAsAction="never"/>

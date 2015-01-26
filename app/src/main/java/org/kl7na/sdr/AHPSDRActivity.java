@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.ConfigurationInfo;
+import android.content.res.Resources;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -198,7 +199,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         dsp_state[3]=prefs.getBoolean("IQ", false);
         dsp_state[4]=prefs.getBoolean("RXDCBlock", false);
         lastFewIpAddresses[0] = prefs.getString("RecentServer0","192.168.2.155");
-        lastFewIpAddresses[1] = prefs.getString("RecentServer0","192.168.2.223");
+        lastFewIpAddresses[1] = prefs.getString("RecentServer1","192.168.2.223");
         //lastFewIpAddresses[2] = prefs.getString("RecentServer0","192.168.2.154");
     }
 
@@ -206,6 +207,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     protected void onStop(){
         Log.i("AHPSDRActivity","onStop");
         super.onStop();
+        reoroganizeLastFewIp();
         connection.close();
         savePrefs();
     }
@@ -250,6 +252,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
             editor.putBoolean("NB", dsp_state[2]);
             editor.putBoolean("IQ", dsp_state[3]);
             editor.putBoolean("RXDCBlock", dsp_state[4]);
+           // lastFewIpAddresses[0]="192.168.2.155";
+            //lastFewIpAddresses[1]="192.168.2.152";
             editor.putString("RecentServer0", lastFewIpAddresses[0]);
             editor.putString("RecentServer1", lastFewIpAddresses[1]);
             //editor.putString("RecentServer2", lastFewIpAddresses[2]);
@@ -288,18 +292,22 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     }
 
     public void onResume() {
-        super.onResume();
-        mGLSurfaceView.onResume();
-        Log.i("AHPSDR", "onResume");
-        //mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_NORMAL);
-        if(connection == null) connection = new Connection(server, BASE_PORT+receiver, width);
-        setConnectionDefaults(); // To fix: crash at 1384 started here.
-        mySetTitle();
-        spectrumView.setAverage(-100);
-        restorePrefs();
+        try {
+            super.onResume();
+            mGLSurfaceView.onResume();
+            Log.i("AHPSDR", "onResume");
+            //mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_NORMAL);
+            if (connection == null)
+                connection = new Connection(server, BASE_PORT + receiver, width);
+            setConnectionDefaults(); // To fix: crash at 1384 started here. (Added try/catch for this.)
+            mySetTitle();
+            spectrumView.setAverage(-100);
+            restorePrefs();
+        } catch (Exception e) {}
     }
 
     public void onPause() {
+        reoroganizeLastFewIp();
         connection.close();
         mGLSurfaceView.onPause();
         Log.i("AHPSDR", "onPause");
@@ -310,6 +318,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     public void onDestroy() {
         super.onDestroy();
         Log.i("AHPSDR", "onDestroy");
+        reoroganizeLastFewIp();
         connection.close();
         savePrefs();
     }
@@ -329,8 +338,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         URL updateURL = new URL("http://qtradio.napan.ca/qtradio/qtradio.pl");
                         URLConnection conn = updateURL.openConnection();
                         conn.setUseCaches(false);
-                        conn.setConnectTimeout(3000);
-                        conn.setReadTimeout(1000);
+                        //conn.setConnectTimeout(3000);
+                        //conn.setReadTimeout(1000);
                         InputStream is = conn.getInputStream();
                         BufferedInputStream bis = new BufferedInputStream(is);
                         ByteArrayBuffer baf = new ByteArrayBuffer(50);
@@ -512,16 +521,13 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 //		Dialog dialog;
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Resources res = getResources();
         Dialog dialog = null;
         AlertDialog.Builder builder;
         switch (item.getItemId()) {
             case R.id.action_menu_quit:
                 this.finish();
                 break;
-		  /*case R.id.action_menu_connection:
-                builder = enterServerManually();
-			    dialog = builder.create();
-			    break;*/
             case R.id.action_menu_servers:
                 builder = chooseServer();
                 Log.i("servers"," Just finished chooseServer()");
@@ -1082,14 +1088,31 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 }
                 break;
             case R.id.action_menu_agc:
+                String[] agcs = res.getStringArray(R.array.agc_state);
                 builder = new AlertDialog.Builder(this);
                 builder.setTitle(R.string.agc_menu_title);
                 builder.setSingleChoiceItems(agcs, agc,
                         new OnClickListener() {
                             public void onClick(DialogInterface dialog, int item) {
-                                //
+                                Log.i("AGC","AGC is: "+String.valueOf(item));
                                 agc=item;
                                 connection.setAGC(agc);
+                                dialog.dismiss();
+                            }
+                        });
+                dialog = builder.create();
+                break;
+            case R.id.action_menu_attenuator:
+                String[] atts = res.getStringArray(R.array.attenuator_state);
+                builder = new AlertDialog.Builder(this);
+                builder.setTitle(R.string.attenuator_menu_title);
+                builder = new AlertDialog.Builder(this);
+                builder.setSingleChoiceItems(atts, att,
+                        new OnClickListener() {
+                            public void onClick(DialogInterface dialog, int item) {
+                                att=10*item;
+                                Log.i("AGC","Attenuator is: "+String.valueOf(att));
+                                connection.setAttenuator(att);
                                 dialog.dismiss();
                             }
                         });
@@ -1295,12 +1318,12 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         } else {
                             Log.i("servers", servers[item - 1].toString());
                             mode = connection.getMode();
-                            connection.close();
                             frequency = connection.getFrequency();
                             band = connection.getBand();
                             filterLow = connection.getFilterLow();
                             filterHigh = connection.getFilterHigh();
-
+                            reoroganizeLastFewIp();
+                            connection.close();
                             server = servers[item - 1].toString();
                             connection = new Connection(server, BASE_PORT + receiver, width);
                             if (!setConnectionDefaults()) {
@@ -1343,14 +1366,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 band = connection.getBand();
                 filterLow = connection.getFilterLow();
                 filterHigh = connection.getFilterHigh();
-                boolean sameOldIp = false;
-                for (int i=0; i<lastFewIpAddresses.length; i++){
-                    if(lastFewIpAddresses[i].contentEquals(server))
-                        sameOldIp = true;
-                }
-                if(!sameOldIp) {
-                    lastFewIpAddresses[lastFewIpAddresses.length - 1] = server;
-                }
+                reoroganizeLastFewIp();
                 connection.close();
                 server = value;
                 receiver = RX_0; // Most servers have only one receiver, RX_0.
@@ -1362,6 +1378,28 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         });
         builder.show();
         return builder;
+    }
+
+    private void reoroganizeLastFewIp() {
+        boolean sameOldIp = false;
+        for (int i=0; i<lastFewIpAddresses.length; i++) {
+            if (lastFewIpAddresses[i].contentEquals(server)) {
+                sameOldIp = true;
+                Log.i("Server", "sameOldIp set to true.");
+            }
+        }
+        for (int i=0; i<servers.length;i++) {
+            if(servers[i].toString().contentEquals(server)) {
+                sameOldIp = true;
+            }
+        }
+        if(!sameOldIp) {
+            Log.i("Server","Not sameOldIp");
+            for(int i = 0; i< lastFewIpAddresses.length - 1; i++) {
+                lastFewIpAddresses[i+1] = lastFewIpAddresses[i];
+            }
+            lastFewIpAddresses[0] = server;
+        }
     }
 
     /**
@@ -1573,8 +1611,10 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     public static final int MODE_SAM = 10;
     public static final int MODE_DRM = 11;
 
-    public static final CharSequence[] agcs = { "OFF", "LONG", "SLOW",
-            "MEDIUM", "FAST" };
+    /*public static final CharSequence[] agcs = { getApplicationContext().(R.string.agc_state_off),
+            "LONG", "SLOW",
+            "MEDIUM", "FAST" };*/
+
     private int agc = AGC_LONG;
 
     public static final int AGC_OFF = 0;
@@ -1582,6 +1622,13 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     public static final int AGC_SLOW = 2;
     public static final int AGC_MEDIUM = 3;
     public static final int AGC_FAST = 4;
+
+    public int att = ATT_0DB;
+
+    public static final int ATT_0DB = 0;
+    public static final int ATT_10DB = 1;
+    public static final int ATT_20DB = 2;
+    public static final int ATT_30DB = 3;
 
     public static final CharSequence[] dsps = { "NR", "ANF", "NB", "IQ CORRECTION", "RX DC Block" };
 

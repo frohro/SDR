@@ -518,10 +518,15 @@ public class Connection extends Thread {
 		return (String) AHPSDRActivity.modes[mode];
 	}
 
-	public void setAGC(int agc) {
-		this.agc = agc;
-		sendCommand("setAGC  " + agc);
-	}
+    public void setAGC(int agc) {
+        this.agc = agc;
+        sendCommand("setACG  " + agc);
+    }
+
+    public void setAttenuator(int att) {
+        this.att = att;
+        sendCommand("*setattenuator  " + String.valueOf(10*att));
+    }
 
 	public void setNR(boolean state) {
 		sendCommand("setNR " + state);
@@ -700,6 +705,7 @@ public class Connection extends Thread {
 	private int band = AHPSDRActivity.BAND_20;
 	private int fps;
 	private int agc;
+    private int att;
 	private int sampleRate;
 	private short meter;
 	private int spectrumAverage = 0;
