@@ -201,6 +201,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         lastFewIpAddresses[0] = prefs.getString("RecentServer0","192.168.2.155");
         lastFewIpAddresses[1] = prefs.getString("RecentServer1","192.168.2.223");
         //lastFewIpAddresses[2] = prefs.getString("RecentServer0","192.168.2.154");
+        att = prefs.getInt("Attenuator",0);
     }
 
     @Override
@@ -252,11 +253,12 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
             editor.putBoolean("NB", dsp_state[2]);
             editor.putBoolean("IQ", dsp_state[3]);
             editor.putBoolean("RXDCBlock", dsp_state[4]);
-           // lastFewIpAddresses[0]="192.168.2.155";
+            // lastFewIpAddresses[0]="192.168.2.155";
             //lastFewIpAddresses[1]="192.168.2.152";
             editor.putString("RecentServer0", lastFewIpAddresses[0]);
             editor.putString("RecentServer1", lastFewIpAddresses[1]);
             //editor.putString("RecentServer2", lastFewIpAddresses[2]);
+            editor.putInt("Attenuator", att);
         }
         editor.apply();
     }
@@ -338,7 +340,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         URL updateURL = new URL("http://qtradio.napan.ca/qtradio/qtradio.pl");
                         URLConnection conn = updateURL.openConnection();
                         conn.setUseCaches(false);
-                        //conn.setConnectTimeout(3000);
+                        //conn.setConnectTimeout(3000); These seem to slow things up.
                         //conn.setReadTimeout(1000);
                         InputStream is = conn.getInputStream();
                         BufferedInputStream bis = new BufferedInputStream(is);
@@ -403,7 +405,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         }
                         for (i = 0; i < n + lastFewIpAddresses.length; i++){
                             if (servers[i].toString().equals(server)) serverAdapter.setSelection(i+1
-                            +lastFewIpAddresses.length);
+                                    +lastFewIpAddresses.length);
                         }
                     } catch (Exception e) {
                     }
@@ -445,7 +447,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                     }
                     break;
                 case R.id.action_menu_band:
-                    Log.i("rotate_debugging","Line 425");
+                    //Log.i("rotate_debugging","Line 425");
                     try {
                         if (!connection.getHasBeenSlave()) {        // update band specific default freq
                             switch (connection.getBand()) {
@@ -495,17 +497,18 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                     }
                     break;
                 case R.id.action_menu_attenuator:
-                        try {
-                            if(!connection.getHardware().contentEquals("Hermes")) { // Better check other units.
-                                Log.i("Hardware","Hardware is not Hermes. "+ connection.getHardware());
-                                menu.getItem(menu_number).setVisible(false);
-                            } else {
-                                menu.getItem(menu_number).setVisible(true);
-                            }
+                    try {
+                        if((connection.getHardware().contentEquals("Hermes"))
+                                ||(connection.getHardware().contentEquals("Metis"))) { // Better check other units.
+                            //Log.i("Hardware","Hardware is Hermes or Metis. "+ connection.getHardware());
+                            menu.getItem(menu_number).setVisible(true);
+                        } else {
+                            menu.getItem(menu_number).setVisible(false);
                         }
-                        catch (Exception e) {
-                        }
-                        break;
+                    }
+                    catch (Exception e) {
+                    }
+                    break;
                 case R.id.action_menu_tx_user: // No need to see these menus if TX isn't set.
                 case R.id.action_menu_master:
                 case R.id.action_menu_mic_gain:
@@ -524,13 +527,6 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         return super.onPrepareOptionsMenu(menu);
     }
 
-   /* @Override
-    public void onOptionsMenuClosed(Menu menu) {
-        openOptionsMenu();  Rob did this testing.
-    }*/
-
-    //	protected Dialog onCreateDialog(final int id) {
-//		Dialog dialog;
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Resources res = getResources();
@@ -1122,9 +1118,9 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 builder.setSingleChoiceItems(atts, att,
                         new OnClickListener() {
                             public void onClick(DialogInterface dialog, int item) {
-                                att=10*item;
+                                att=item;
                                 Log.i("AGC","Attenuator is: "+String.valueOf(att));
-                                connection.setAttenuator(att);
+                                connection.setAttenuator(att*10);
                                 dialog.dismiss();
                             }
                         });
@@ -1442,6 +1438,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         connection.setGain(gain * 10);
         connection.setMicGain(micgain);
         connection.setAGC(agc);
+        connection.setAttenuator(att*10);
         connection.setAllowTx(tx_state[0]);
         spectrumView.setJogButtonDirection(jd_state[0]);
         connection.setTxUser(txUser);
@@ -1485,7 +1482,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 
     private Runnable updateTitle = new Runnable() {
         public void run(){
-            setTitle("SDR: "+server+" (rx"+receiver+") "+qAnswer+" "+ connection.getHardware());
+            setTitle("SDR: "+server+" (r"+receiver+") "+ connection.getHardware()+" "+qAnswer);
         }
     };
 
@@ -1636,7 +1633,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     public static final int AGC_MEDIUM = 3;
     public static final int AGC_FAST = 4;
 
-    public int att = ATT_0DB;
+    public int att = ATT_0DB; // att = dB/10
 
     public static final int ATT_0DB = 0;
     public static final int ATT_10DB = 1;
