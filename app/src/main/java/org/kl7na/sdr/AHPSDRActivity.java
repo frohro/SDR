@@ -116,7 +116,6 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 
         filterAdapter = new CustomAdapter(this, R.layout.row, R.id.selection);
         serverAdapter = new CustomAdapter(this, R.layout.row, R.id.selection);
-        connectionAdapter = new CustomAdapter(this, R.layout.row, R.id.selection);
     }
 
     public void restorePrefs() {
@@ -184,8 +183,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         filterHigh=prefs.getInt("FilterHigh", 2850);
         gain=prefs.getInt("Gain", 5);
         micgain=prefs.getInt("Micgain", 0);
-        agc=prefs.getInt("AGC", AGC_LONG);
-        fps=prefs.getInt("Fps", FPS_10);
+        agc=prefs.getInt("AGC", R.array.agc_state);
+        fps=prefs.getInt("Fps", 10);
         spectrumAverage=prefs.getInt("SpectrumAverage", 0);
         server=prefs.getString("Server", "qtradio.napan.ca");
         receiver=prefs.getInt("Receiver", 0);
@@ -208,7 +207,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     protected void onStop(){
         Log.i("AHPSDRActivity","onStop");
         super.onStop();
-        reoroganizeLastFewIp();
+        reorganizeLastFewIp();
         connection.close();
         savePrefs();
     }
@@ -253,8 +252,6 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
             editor.putBoolean("NB", dsp_state[2]);
             editor.putBoolean("IQ", dsp_state[3]);
             editor.putBoolean("RXDCBlock", dsp_state[4]);
-            // lastFewIpAddresses[0]="192.168.2.155";
-            //lastFewIpAddresses[1]="192.168.2.152";
             editor.putString("RecentServer0", lastFewIpAddresses[0]);
             editor.putString("RecentServer1", lastFewIpAddresses[1]);
             //editor.putString("RecentServer2", lastFewIpAddresses[2]);
@@ -311,7 +308,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     }
 
     public void onPause() {
-        reoroganizeLastFewIp();
+        reorganizeLastFewIp();
         connection.close();
         mGLSurfaceView.onPause();
         Log.i("AHPSDR", "onPause");
@@ -322,7 +319,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     public void onDestroy() {
         super.onDestroy();
         Log.i("AHPSDR", "onDestroy");
-        reoroganizeLastFewIp();
+        reorganizeLastFewIp();
         connection.close();
         savePrefs();
     }
@@ -347,7 +344,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         InputStream is = conn.getInputStream();
                         BufferedInputStream bis = new BufferedInputStream(is);
                         ByteArrayBuffer baf = new ByteArrayBuffer(50);
-                        int current = 0;
+                        int current;
                         while ((current = bis.read()) != -1) {
                             baf.append((byte) current);
                         }
@@ -364,8 +361,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         int j;
                         serverAdapter.clear();
                         serverAdapter.add(getApplicationContext().getString(R.string.connection_menu_title));
-                        for(int l=0; l< lastFewIpAddresses.length; l++) {
-                            serverAdapter.add(lastFewIpAddresses[l]);
+                        for(String address : lastFewIpAddresses) {
+                            serverAdapter.add(address);
                         }
                         while ((i = html.indexOf("<tr><td>", i)) != -1) {
                             i += 8;
@@ -532,6 +529,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         return super.onPrepareOptionsMenu(menu);
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         Resources res = getResources();
@@ -542,9 +540,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 this.finish();
                 break;
             case R.id.action_menu_servers:
-                builder = chooseServer();
+                chooseServer();
                 Log.i("servers"," Just finished chooseServer()");
-                //dialog = builder.create();
                 break;
             case R.id.action_menu_receiver:
                 builder = new AlertDialog.Builder(this);
@@ -1316,7 +1313,6 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     }
 
     private AlertDialog.Builder chooseServer() {
-        Dialog dialog;
         AlertDialog.Builder builder;
         builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.server_menu_title);
@@ -1335,7 +1331,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                             band = connection.getBand();
                             filterLow = connection.getFilterLow();
                             filterHigh = connection.getFilterHigh();
-                            reoroganizeLastFewIp();
+                            reorganizeLastFewIp();
                             connection.close();
                             server = servers[item - 1].toString();
                             connection = new Connection(server, BASE_PORT + receiver, width);
@@ -1379,7 +1375,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 band = connection.getBand();
                 filterLow = connection.getFilterLow();
                 filterHigh = connection.getFilterHigh();
-                reoroganizeLastFewIp();
+                reorganizeLastFewIp();
                 connection.close();
                 server = value;
                 receiver = RX_0; // Most servers have only one receiver, RX_0.
@@ -1393,21 +1389,19 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         return builder;
     }
 
-    private void reoroganizeLastFewIp() {
+    private void reorganizeLastFewIp() {
         boolean sameOldIp = false;
-        for (int i=0; i<lastFewIpAddresses.length; i++) {
-            if (lastFewIpAddresses[i].contentEquals(server)) {
+        for (String address : lastFewIpAddresses) {
+            if (address.contentEquals(server)) {
                 sameOldIp = true;
-                Log.i("Server", "sameOldIp set to true.");
             }
         }
-        for (int i=0; i<servers.length;i++) {
-            if(servers[i].toString().contentEquals(server)) {
+        for (int l = 0; l < servers.length; l++) {
+            if(servers[l].toString().contentEquals(server)) {
                 sameOldIp = true;
             }
         }
         if(!sameOldIp) {
-            Log.i("Server","Not sameOldIp");
             for(int i = 0; i< lastFewIpAddresses.length - 1; i++) {
                 lastFewIpAddresses[i+1] = lastFewIpAddresses[i];
             }
@@ -1506,16 +1500,6 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         }
     }
 
-    public void showToast(final String toast)
-    {
-        runOnUiThread(new Runnable() {
-            public void run()
-            {
-                Toast.makeText(AHPSDRActivity.this, toast, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     // Handle bitcoin Donation
 	
 	/*private void handleDonate()
@@ -1545,33 +1529,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 
     //Put these in the menu (main_activity_actions.xml) as @id.
     public static final int RX_0 = 0;
-    public static final int RX_1 = 1;
-    public static final int RX_2 = 2;
-    public static final int RX_3 = 3;
-    public static final int RX_4 = 4;
-    public static final int RX_5 = 5;
-    public static final int RX_6 = 6;
-    public static final int RX_7 = 7;
 
-    public static final int MENU_QUIT = 0;
-    public static final int MENU_BAND = 1;
-    public static final int MENU_MODE = 2;
-    public static final int MENU_FILTER = 3;
-    public static final int MENU_AGC = 4;
-    public static final int MENU_DSP = 5;
-    public static final int MENU_GAIN = 6;
-    public static final int MENU_FPS = 7;
-    public static final int MENU_CONNECTION = 8;
-    public static final int MENU_RECEIVER = 9;
-    public static final int MENU_FREQUENCY = 10;
-    public static final int MENU_SERVERS = 11;
-    public static final int MENU_TX = 12;
-    public static final int MENU_TX_USER = 13;
-    public static final int MENU_JOG_DIR = 14;
-    public static final int MENU_MASTER = 15;
-    public static final int MENU_MIC_GAIN = 16;
-    public static final int MENU_SPECTRUM_AVERAGE = 17;
-    public static final int MENU_ABOUT = 18;
     public static final int MENU_DONATE = 19;
 
     public static final CharSequence[] bands = { "160", "80", "60", "40", "30",
@@ -1630,20 +1588,9 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
             "LONG", "SLOW",
             "MEDIUM", "FAST" };*/
 
-    private int agc = AGC_LONG;
+    private int agc;
 
-    public static final int AGC_OFF = 0;
-    public static final int AGC_LONG = 1;
-    public static final int AGC_SLOW = 2;
-    public static final int AGC_MEDIUM = 3;
-    public static final int AGC_FAST = 4;
-
-    public int att = ATT_0DB; // att = dB/10
-
-    public static final int ATT_0DB = 0;
-    public static final int ATT_10DB = 1;
-    public static final int ATT_20DB = 2;
-    public static final int ATT_30DB = 3;
+    public int att;
 
     public static final CharSequence[] dsps = { "NR", "ANF", "NB", "IQ CORRECTION", "RX DC Block" };
 
@@ -1674,23 +1621,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     public static final CharSequence[] fpss = { "1", "2", "3", "4", "5",
             "6", "7", "8", "9", "10", "11", "12", "13", "14", "15" };
 
-    public int fps = FPS_10;
-
-    public static final int FPS_1 = 0;
-    public static final int FPS_2 = 1;
-    public static final int FPS_3 = 2;
-    public static final int FPS_4 = 3;
-    public static final int FPS_5 = 4;
-    public static final int FPS_6 = 5;
-    public static final int FPS_7 = 6;
-    public static final int FPS_8 = 7;
-    public static final int FPS_9 = 8;
-    public static final int FPS_10 = 9;
-    public static final int FPS_11 = 10;
-    public static final int FPS_12 = 11;
-    public static final int FPS_13 = 12;
-    public static final int FPS_14 = 13;
-    public static final int FPS_15 = 14;
+    public int fps;
 
     public static final CharSequence[] spectrumAverages = { "0", "1", "2", "3", "4", "5", "6", "7", "8"};
 
@@ -1729,7 +1660,6 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     private int BASE_PORT = 8000;
     private int port = 8000;
     private CustomAdapter serverAdapter;
-    private CustomAdapter connectionAdapter;
     private CharSequence servers[];
 
     private String txUser = "";
@@ -1745,6 +1675,6 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     private static final String[] DONATION_ADDRESSES_TESTNET = { "my16ohVdTJK5w5eba6AbTRLatsN3gpGLaK", "mg2Y2CRKK1ACQcNBEUVFRSM7pHeu4kBxuF" };
     private static final int REQUEST_CODE = 0;
 
-    private int selectedIpItem;
+
 
 }
