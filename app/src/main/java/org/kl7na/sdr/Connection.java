@@ -90,10 +90,10 @@ public class Connection extends Thread {
 		    
 		    
 		} catch (Exception e) {
-			/*Log.e("Connection", "Error creating socket for " + server + ":"
+			Log.e("Connection", "Error creating socket for " + server + ":"
 					+ port + "'" + e.getMessage() + "'");
             status=e.toString();
-            Log.e("Connection","e.toString()"+" "+status+".");*/ // These messages print out over red over the white screen.
+            Log.e("Connection","e.toString()"+" "+status+"."); // These messages print out over red over the white screen.
             socket=null;
 			result = false;
 		}
@@ -107,7 +107,10 @@ public class Connection extends Thread {
 		        try {
 		                socket.close();
 		        } catch (Exception e) {
-
+                    Log.e("Connection", "Error closing socket for " + server + ":"
+                            + port + "'" + e.getMessage() + "'");
+                    status=e.toString();
+                    Log.e("Connection","e.toString()"+" "+status+".");
 		        }
 		        socket=null;
 		}
@@ -739,7 +742,7 @@ public class Connection extends Thread {
 	private int micGain = 0;
 	private boolean allowTx = false;
 
-    private String hardware = "Unknown hardware";
+    private String hardware = "";
 	
 	private static short[] aLawDecode = new short[256];
 	private static byte[] aLawEncode = new byte[65536];

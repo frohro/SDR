@@ -81,10 +81,10 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
             mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         }
         else { // quit if no support - get a better phone! :P
-            Context context = getApplicationContext();
-            String text = context.getString(R.string.opengl2es_unavailable);
+            //Context context = getApplicationContext();
+            String text = getString(R.string.opengl2es_unavailable);
             int duration = Toast.LENGTH_SHORT;
-            Toast toast = Toast.makeText(context, text, duration);
+            Toast toast = Toast.makeText(this, text, duration);
             toast.show();
             this.finish();
         }
@@ -305,7 +305,9 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
             mySetTitle();
             spectrumView.setAverage(-100);
             restorePrefs();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            Log.e("Error",e.toString()+"309");
+        }
     }
 
     public void onPause() {
@@ -345,14 +347,12 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         InputStream is = conn.getInputStream();
                         BufferedInputStream bis = new BufferedInputStream(is);
                         ByteArrayBuffer baf = new ByteArrayBuffer(50);
-
                         int current = 0;
                         while ((current = bis.read()) != -1) {
                             baf.append((byte) current);
                         }
                         bis.close();
                         String html = new String(baf.toByteArray());
-
                         // need to extract out the servers addresses
                         // look for <tr><td>
                         Vector<String> temp = new Vector<String>();
@@ -394,8 +394,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                                 n++;
                             }
                         }
-                        //Log.i("servers", html);
-                        servers = new CharSequence[n];
+                        servers = new CharSequence[n+lastFewIpAddresses.length];
                         serverAdapter.setSelection(0);
                         for (i=0; i < lastFewIpAddresses.length; i++) {
                             servers[i]=lastFewIpAddresses[i];
@@ -404,14 +403,17 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                             servers[i + lastFewIpAddresses.length] = temp.elementAt(i);
                         }
                         for (i = 0; i < n + lastFewIpAddresses.length; i++){
-                            if (servers[i].toString().equals(server)) serverAdapter.setSelection(i+1
-                                    +lastFewIpAddresses.length);
+                            if (servers[i].toString().equals(server)) {
+                                serverAdapter.setSelection(i - 1
+                                        + lastFewIpAddresses.length);
+                            }
                         }
                     } catch (Exception e) {
+                        Log.e("Error",e.toString()+"@ line 413");
                     }
                     break;
                 case R.id.action_menu_filter:
-                    try {
+                   // try {
                         filters = null;
                         switch (connection.getMode()) {
                             case MODE_LSB:
@@ -442,12 +444,12 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                             for (int k = 0; k < 10; k++) filterAdapter.add(filters[k].toString());
                             filterAdapter.setSelection(filter);
                         }
-                    }
+                   /* }
                     catch (Exception e) {
-                    }
+                        Log.e("Error",e.toString()+"450");
+                    }*/
                     break;
                 case R.id.action_menu_band:
-                    //Log.i("rotate_debugging","Line 425");
                     try {
                         if (!connection.getHasBeenSlave()) {        // update band specific default freq
                             switch (connection.getBand()) {
@@ -494,6 +496,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         }
                     }
                     catch (Exception e) {
+                        Log.e("Error",e.toString()+"501");
                     }
                     break;
                 case R.id.action_menu_attenuator:
@@ -507,6 +510,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         }
                     }
                     catch (Exception e) {
+                        Log.e("Error",e.toString()+"515");
                     }
                     break;
                 case R.id.action_menu_tx_user: // No need to see these menus if TX isn't set.
@@ -520,6 +524,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         }
                     }
                     catch (Exception e) {
+                        Log.e("Error",e.toString()+"529");
                     }
             }
             spectrumView.setAverage(-100);
@@ -1339,10 +1344,10 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                                 Log.i("servers", "Failed to connect.  " + server);
                                 Context context = getApplicationContext();
                                 int duration = Toast.LENGTH_LONG;
-                                Toast toast = Toast.makeText(context, context.getString(R.string.server_hint),
+                                Toast toast = Toast.makeText(context, getString(R.string.server_hint),
                                         duration);
                                 toast.show();
-                                toast = Toast.makeText(context, context.getString(R.string.receiver_server_hint),
+                                toast = Toast.makeText(context, getString(R.string.receiver_server_hint),
                                         duration);
                                 toast.show();
                                 Log.i("servers", "dialog in ");
@@ -1459,12 +1464,12 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         timer = new Timer();
         timer.schedule(new answerTask(), 1000, 1000);
         if (!result){
-            Context context = getApplicationContext();
+            //Context context = getApplicationContext();
             int duration = Toast.LENGTH_LONG;
-            Toast toast = Toast.makeText(context, context.getString(R.string.server_hint),
+            Toast toast = Toast.makeText(this, getString(R.string.server_hint),
                     duration);
             toast.show();
-            toast = Toast.makeText(context, context.getString(R.string.receiver_server_hint),
+            toast = Toast.makeText(this, getString(R.string.receiver_server_hint),
                     duration);
             toast.show();
             chooseServer();
