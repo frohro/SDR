@@ -1333,6 +1333,9 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                             filterHigh = connection.getFilterHigh();
                             reorganizeLastFewIp();
                             connection.close();
+                            if (item > lastFewIpAddresses.length) {
+                                receiver = 0; // receivers for most servers are only RX_0.
+                            }
                             server = servers[item - 1].toString();
                             connection = new Connection(server, BASE_PORT + receiver, width);
                             if (!setConnectionDefaults()) {
