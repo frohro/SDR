@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.content.DialogInterface.OnClickListener;
 import android.content.pm.ConfigurationInfo;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,6 +42,10 @@ import java.util.Vector;
 import android.util.DisplayMetrics;
 import android.widget.Toast;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
+
 //import org.bitcoin.protocols.payments.Protos;
 //import com.google.bitcoin.core.Address;
 //import com.google.bitcoin.core.AddressFormatException;
@@ -51,7 +56,15 @@ import android.widget.Toast;
 
 
 public class AHPSDRActivity extends Activity implements SensorEventListener {
-    /** Called when the activity is first created. */
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
+
+    /**
+     * Called when the activity is first created.
+     */
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -79,8 +92,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
             renderer = new Renderer(this);
             mGLSurfaceView.setRenderer(renderer);
             mGLSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        }
-        else { // quit if no support - get a better phone! :P
+        } else { // quit if no support - get a better phone! :P
             //Context context = getApplicationContext();
             String text = getString(R.string.opengl2es_unavailable);
             int duration = Toast.LENGTH_SHORT;
@@ -94,9 +106,9 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 
         restorePrefs();
 
-        connection=null;
+        connection = null;
 
-        spectrumView = new SpectrumView(this, width, (int)((float)height/2.5f));
+        spectrumView = new SpectrumView(this, width, (int) ((float) height / 2.5f));
         spectrumView.setRenderer(renderer);
         spectrumView.setGLSurfaceView(mGLSurfaceView);
         spectrumView.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
@@ -116,13 +128,16 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 
         filterAdapter = new CustomAdapter(this, R.layout.row, R.id.selection);
         serverAdapter = new CustomAdapter(this, R.layout.row, R.id.selection);
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     public void restorePrefs() {
         SharedPreferences prefs = getSharedPreferences("aHPSDR", 0);
-        band=prefs.getInt("Band", BAND_20);
-        filter=prefs.getInt("Filter",FILTER_5);
-        mode=prefs.getInt("Mode",MODE_USB);
+        band = prefs.getInt("Band", BAND_20);
+        filter = prefs.getInt("Filter", FILTER_5);
+        mode = prefs.getInt("Mode", MODE_USB);
         band_160_freq = prefs.getLong("band_160_freq", 1850000L);
         band_80_freq = prefs.getLong("band_80_freq", 3850000L);
         band_60_freq = prefs.getLong("band_60_freq", 5371500L);
@@ -137,7 +152,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         band_gen_freq = prefs.getLong("band_gen_freq", 15310000L);
         band_wwv_freq = prefs.getLong("band_wwv_freq", 10000000L);
         long band_default_frequency = 14200000L;
-        switch (band){
+        switch (band) {
             case BAND_160:
                 band_default_frequency = prefs.getLong("band_160_freq", 1850000L);
                 break;
@@ -179,37 +194,53 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 break;
         }
         frequency = prefs.getLong("Frequency", band_default_frequency);
-        filterLow=prefs.getInt("FilterLow",150);
-        filterHigh=prefs.getInt("FilterHigh", 2850);
-        gain=prefs.getInt("Gain", 5);
-        micgain=prefs.getInt("Micgain", 0);
-        agc=prefs.getInt("AGC", R.array.agc_state);
-        fps=prefs.getInt("Fps", 10);
-        spectrumAverage=prefs.getInt("SpectrumAverage", 0);
-        server=prefs.getString("Server", "qtradio.napan.ca");
-        receiver=prefs.getInt("Receiver", 0);
-        txUser=prefs.getString("txUser", "");
-        txPass=prefs.getString("txPass", "");
-        tx_state[0]=prefs.getBoolean("txAllow", false);
-        jd_state[0]=prefs.getBoolean("jogSpec", false);
-        dsp_state[0]=prefs.getBoolean("NR", false);
-        dsp_state[1]=prefs.getBoolean("ANF", false);
-        dsp_state[2]=prefs.getBoolean("NB", false);
-        dsp_state[3]=prefs.getBoolean("IQ", false);
-        dsp_state[4]=prefs.getBoolean("RXDCBlock", false);
-        lastFewIpAddresses[0] = prefs.getString("RecentServer0","192.168.2.155");
-        lastFewIpAddresses[1] = prefs.getString("RecentServer1","192.168.2.223");
+        filterLow = prefs.getInt("FilterLow", 150);
+        filterHigh = prefs.getInt("FilterHigh", 2850);
+        gain = prefs.getInt("Gain", 5);
+        micgain = prefs.getInt("Micgain", 0);
+        agc = prefs.getInt("AGC", R.array.agc_state);
+        fps = prefs.getInt("Fps", 10);
+        spectrumAverage = prefs.getInt("SpectrumAverage", 0);
+        server = prefs.getString("Server", "qtradio.napan.ca");
+        receiver = prefs.getInt("Receiver", 0);
+        txUser = prefs.getString("txUser", "");
+        txPass = prefs.getString("txPass", "");
+        tx_state[0] = prefs.getBoolean("txAllow", false);
+        jd_state[0] = prefs.getBoolean("jogSpec", false);
+        dsp_state[0] = prefs.getBoolean("NR", false);
+        dsp_state[1] = prefs.getBoolean("ANF", false);
+        dsp_state[2] = prefs.getBoolean("NB", false);
+        dsp_state[3] = prefs.getBoolean("IQ", false);
+        dsp_state[4] = prefs.getBoolean("RXDCBlock", false);
+        lastFewIpAddresses[0] = prefs.getString("RecentServer0", "192.168.2.155");
+        lastFewIpAddresses[1] = prefs.getString("RecentServer1", "192.168.2.223");
         //lastFewIpAddresses[2] = prefs.getString("RecentServer0","192.168.2.154");
-        att = prefs.getInt("Attenuator",0);
+        att = prefs.getInt("Attenuator", 0);
     }
 
     @Override
-    protected void onStop(){
-        Log.i("AHPSDRActivity","onStop");
-        super.onStop();
+    protected void onStop() {
+        Log.i("AHPSDRActivity", "onStop");
         reorganizeLastFewIp();
         connection.close();
         savePrefs();
+        super.onStop();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "AHPSDR Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://org.kl7na.sdr/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.disconnect();
     }
 
     public void savePrefs() {
@@ -264,19 +295,19 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     }
 
     public void onSensorChanged(SensorEvent event) {
-        spectrumView.setSensors(event.values[0],event.values[1],event.values[2]);
-        Log.i("onAccuracyChanged","ACTION_DOWN");
+        spectrumView.setSensors(event.values[0], event.values[1], event.values[2]);
+        Log.i("onAccuracyChanged", "ACTION_DOWN");
     }
 
     public boolean onTrackballEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                Log.i("onTouch","ACTION_DOWN");
+                Log.i("onTouch", "ACTION_DOWN");
                 spectrumView.setVfoLock();
                 mGLSurfaceView.setVfoLock();
                 break;
             case MotionEvent.ACTION_MOVE:
-                Log.i("onTrackballEvent","ACTION_MOVE");
+                Log.i("onTrackballEvent", "ACTION_MOVE");
                 spectrumView.scroll(-(int) (event.getX() * 6.0));
                 break;
         }
@@ -285,9 +316,25 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 
     public void onStart() {
         super.onStart();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
         Log.i("AHPSDR", "onStart");
         spectrumView.setAverage(-100);
         restorePrefs();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "AHPSDR Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://org.kl7na.sdr/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
     }
 
     public void onResume() {
@@ -296,23 +343,23 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
             mGLSurfaceView.onResume();
             Log.i("AHPSDR", "onResume");
             //mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_NORMAL);
-            if (connection == null)
-                connection = new Connection(server, BASE_PORT + receiver, width);
+            //if (connection == null)
+            connection = new Connection(server, BASE_PORT + receiver, width);
             setConnectionDefaults(); // To fix: crash at 1384 started here. (Added try/catch for this.)
             mySetTitle();
             spectrumView.setAverage(-100);
             restorePrefs();
         } catch (Exception e) {
-            Log.e("Error",e.toString()+"309");
+            Log.e("Error", e.toString() + "309");
         }
     }
 
     public void onPause() {
-        reorganizeLastFewIp();
-        connection.close();
+        //reorganizeLastFewIp();  Ditched to fix problem: Attempt to get length of null array
+        super.onPause();
         mGLSurfaceView.onPause();
         Log.i("AHPSDR", "onPause");
-        super.onPause();
+        connection.close();
         savePrefs();
     }
 
@@ -323,6 +370,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         connection.close();
         savePrefs();
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -361,7 +409,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         int j;
                         serverAdapter.clear();
                         serverAdapter.add(getApplicationContext().getString(R.string.connection_menu_title));
-                        for(String address : lastFewIpAddresses) {
+                        for (String address : lastFewIpAddresses) {
                             serverAdapter.add(address);
                         }
                         while ((i = html.indexOf("<tr><td>", i)) != -1) {
@@ -391,123 +439,124 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                                 n++;
                             }
                         }
-                        servers = new CharSequence[n+lastFewIpAddresses.length];
+                        servers = new CharSequence[n + lastFewIpAddresses.length];
                         serverAdapter.setSelection(0);
-                        for (i=0; i < lastFewIpAddresses.length; i++) {
-                            servers[i]=lastFewIpAddresses[i];
+                        for (i = 0; i < lastFewIpAddresses.length; i++) {
+                            servers[i] = lastFewIpAddresses[i];
                         }
                         for (i = 0; i < n; i++) {
                             servers[i + lastFewIpAddresses.length] = temp.elementAt(i);
                         }
-                        for (i = 0; i < n + lastFewIpAddresses.length; i++){
+                        for (i = 0; i < n + lastFewIpAddresses.length; i++) {
                             if (servers[i].toString().equals(server)) {
                                 serverAdapter.setSelection(i - 1
                                         + lastFewIpAddresses.length);
                             }
                         }
                     } catch (Exception e) {
-                        Log.e("Error",e.toString()+"@ line 413");
+                        Log.e("Error", e.toString() + "@ line 413");
                     }
                     break;
                 case R.id.action_menu_filter:
-                   // try {
-                        filters = null;
-                        switch (connection.getMode()) {
-                            case MODE_LSB:
-                            case MODE_USB:
-                            case MODE_DSB:
-                                filters = ssbFilters;
-                                break;
-                            case MODE_CWL:
-                            case MODE_CWU:
-                                filters = cwFilters;
-                                break;
-                            case MODE_FMN:
-                                filters = fmFilters;
-                                break;
-                            case MODE_AM:
-                            case MODE_DIGU:
-                            case MODE_DIGL:
-                            case MODE_SAM:
-                                filters = amFilters;
-                                break;
-                            case MODE_SPEC:
-                            case MODE_DRM:
-                                filters = null;
-                                break;
-                        }
-                        filterAdapter.clear();
-                        if (filters != null) {
-                            for (int k = 0; k < 10; k++) filterAdapter.add(filters[k].toString());
-                            filterAdapter.setSelection(filter);
-                        }
+                    // try {
+                    filters = null;
+                    switch (connection.getMode()) {
+                        case MODE_LSB:
+                        case MODE_USB:
+                        case MODE_DSB:
+                            filters = ssbFilters;
+                            break;
+                        case MODE_CWL:
+                        case MODE_CWU:
+                            filters = cwFilters;
+                            break;
+                        case MODE_FMN:
+                            filters = fmFilters;
+                            break;
+                        case MODE_AM:
+                        case MODE_DIGU:
+                        case MODE_DIGL:
+                        case MODE_SAM:
+                            filters = amFilters;
+                            break;
+                        case MODE_SPEC:
+                        case MODE_DRM:
+                            filters = null;
+                            break;
+                    }
+                    filterAdapter.clear();
+                    if (filters != null) {
+                        for (int k = 0; k < 10; k++) filterAdapter.add(filters[k].toString());
+                        filterAdapter.setSelection(filter);
+                    }
                    /* }
                     catch (Exception e) {
                         Log.e("Error",e.toString()+"450");
                     }*/
                     break;
                 case R.id.action_menu_band:
-                    try {
-                        if (!connection.getHasBeenSlave()) {        // update band specific default freq
-                            switch (connection.getBand()) {
-                                case BAND_160:
-                                    band_160_freq = connection.getFrequency();
-                                    break;
-                                case BAND_80:
-                                    band_80_freq = connection.getFrequency();
-                                    break;
-                                case BAND_60:
-                                    band_60_freq = connection.getFrequency();
-                                    break;
-                                case BAND_40:
-                                    band_40_freq = connection.getFrequency();
-                                    break;
-                                case BAND_30:
-                                    band_30_freq = connection.getFrequency();
-                                    break;
-                                case BAND_20:
-                                    band_20_freq = connection.getFrequency();
-                                    break;
-                                case BAND_17:
-                                    band_17_freq = connection.getFrequency();
-                                    break;
-                                case BAND_15:
-                                    band_15_freq = connection.getFrequency();
-                                    break;
-                                case BAND_12:
-                                    band_12_freq = connection.getFrequency();
-                                    break;
-                                case BAND_10:
-                                    band_10_freq = connection.getFrequency();
-                                    break;
-                                case BAND_6:
-                                    band_6_freq = connection.getFrequency();
-                                    break;
-                                case BAND_GEN:
-                                    band_gen_freq = connection.getFrequency();
-                                    break;
-                                case BAND_WWV:
-                                    band_wwv_freq = connection.getFrequency();
-                                    break;
+                        try {
+                            if (!connection.getHasBeenSlave()) {        // update band specific default freq
+                                switch (connection.getBand()) {
+                                    case BAND_160:
+                                        band_160_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_80:
+                                        band_80_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_60:
+                                        band_60_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_40:
+                                        band_40_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_30:
+                                        band_30_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_20:
+                                        band_20_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_17:
+                                        band_17_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_15:
+                                        band_15_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_12:
+                                        band_12_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_10:
+                                        band_10_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_6:
+                                        band_6_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_GEN:
+                                        band_gen_freq = connection.getFrequency();
+                                        break;
+                                    case BAND_WWV:
+                                        band_wwv_freq = connection.getFrequency();
+                                        break;
+                                }
                             }
+                        } catch (NullPointerException e) {
+                            Log.e("NullPointerException", e.toString());
+                        } catch (Exception e) {
+                            Log.e("Error", e.toString() + "501");
                         }
-                    }
-                    catch (Exception e) {
-                        Log.e("Error",e.toString()+"501");
-                    }
+
                     break;
                 case R.id.action_menu_attenuator:
                     try {
-                        if((connection.getHardware().contentEquals("Hermes"))
-                                ||(connection.getHardware().contentEquals("Metis"))) { // Better check other units.
+                        if ((connection.getHardware().contentEquals("Hermes"))
+                                || (connection.getHardware().contentEquals("Metis"))) { // Better check other units.
                             //Log.i("Hardware","Hardware is Hermes or Metis. "+ connection.getHardware());
                             menu.getItem(menu_number).setVisible(true);
                         } else {
                             menu.getItem(menu_number).setVisible(false);
                         }
-                    }
-                    catch (Exception e) {
-                        Log.e("Error",e.toString()+"515");
+                    } catch (Exception e) {
+                        Log.e("Error", e.toString() + "515");
                     }
                     break;
                 case R.id.action_menu_tx_user: // No need to see these menus if TX isn't set.
@@ -519,9 +568,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                         } else {
                             menu.getItem(menu_number).setVisible(true);
                         }
-                    }
-                    catch (Exception e) {
-                        Log.e("Error",e.toString()+"529");
+                    } catch (Exception e) {
+                        Log.e("Error", e.toString() + "529");
                     }
             }
             spectrumView.setAverage(-100);
@@ -541,7 +589,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 break;
             case R.id.action_menu_servers:
                 chooseServer();
-                Log.i("servers"," Just finished chooseServer()");
+                Log.i("servers", " Just finished chooseServer()");
                 break;
             case R.id.action_menu_receiver:
                 builder = new AlertDialog.Builder(this);
@@ -549,14 +597,14 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 builder.setSingleChoiceItems(receivers, receiver,
                         new OnClickListener() {
                             public void onClick(DialogInterface dialog, int item) {
-                                Log.i("Receiver",Integer.toString(item));
-                                mode=connection.getMode();
-                                frequency=connection.getFrequency();
-                                filterLow=connection.getFilterLow();
-                                filterHigh=connection.getFilterHigh();
+                                Log.i("Receiver", Integer.toString(item));
+                                mode = connection.getMode();
+                                frequency = connection.getFrequency();
+                                filterLow = connection.getFilterLow();
+                                filterHigh = connection.getFilterHigh();
                                 connection.close();
-                                receiver=item;
-                                connection = new Connection(server, BASE_PORT + receiver,width);
+                                receiver = item;
+                                connection = new Connection(server, BASE_PORT + receiver, width);
                                 setConnectionDefaults();
                                 mySetTitle();
                                 dialog.dismiss();
@@ -575,7 +623,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 builder.setPositiveButton(R.string.ok, new OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         String value = freq.getText().toString().trim();
-                        Log.i("Frequency",value);
+                        Log.i("Frequency", value);
                         connection.setFrequency(Long.parseLong(value));
                         dialog.dismiss();
                     }
@@ -685,7 +733,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 builder.setSingleChoiceItems(modes, connection.getMode(),
                         new OnClickListener() {
                             public void onClick(DialogInterface dialog, int item) {
-                                mode=item;
+                                mode = item;
                                 connection.setMode(mode);
                                 filter = FILTER_5;
                                 switch (item) {
@@ -766,7 +814,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                     builder.setAdapter(filterAdapter,
                             new OnClickListener() {
                                 public void onClick(DialogInterface dialog, int item) {
-                                    filter=item;
+                                    filter = item;
                                     switch (filter) {
                                         case FILTER_0:
                                             switch (connection.getMode()) {
@@ -1104,8 +1152,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 builder.setSingleChoiceItems(agcs, agc,
                         new OnClickListener() {
                             public void onClick(DialogInterface dialog, int item) {
-                                Log.i("AGC","AGC is: "+String.valueOf(item));
-                                agc=item;
+                                Log.i("AGC", "AGC is: " + String.valueOf(item));
+                                agc = item;
                                 connection.setAGC(agc);
                                 dialog.dismiss();
                             }
@@ -1120,9 +1168,9 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 builder.setSingleChoiceItems(atts, att,
                         new OnClickListener() {
                             public void onClick(DialogInterface dialog, int item) {
-                                att=item;
-                                Log.i("AGC","Attenuator is: "+String.valueOf(att));
-                                connection.setAttenuator(att*10);
+                                att = item;
+                                Log.i("AGC", "Attenuator is: " + String.valueOf(att));
+                                connection.setAttenuator(att * 10);
                                 dialog.dismiss();
                             }
                         });
@@ -1155,8 +1203,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                                 }
                             }
                         });
-                builder.setPositiveButton(R.string.save, new OnClickListener(){
-                    public void onClick(DialogInterface dialog, int which){
+                builder.setPositiveButton(R.string.save, new OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
                     }
                 });
@@ -1231,8 +1279,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 builder.setSingleChoiceItems(gains, gain,
                         new OnClickListener() {
                             public void onClick(DialogInterface dialog, int item) {
-                                gain=item;
-                                connection.setGain(gain*10);
+                                gain = item;
+                                connection.setGain(gain * 10);
                                 dialog.dismiss();
                             }
                         });
@@ -1244,7 +1292,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 builder.setSingleChoiceItems(micgains, micgain,
                         new OnClickListener() {
                             public void onClick(DialogInterface dialog, int item) {
-                                micgain=item;
+                                micgain = item;
                                 connection.setMicGain(micgain);
                                 dialog.dismiss();
                             }
@@ -1257,8 +1305,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 builder.setSingleChoiceItems(fpss, fps,
                         new OnClickListener() {
                             public void onClick(DialogInterface dialog, int item) {
-                                fps=item;
-                                connection.getSpectrum_protocol3(fps+1);
+                                fps = item;
+                                connection.getSpectrum_protocol3(fps + 1);
                                 dialog.dismiss();
                             }
                         });
@@ -1270,7 +1318,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 builder.setSingleChoiceItems(spectrumAverages, spectrumAverage,
                         new OnClickListener() {
                             public void onClick(DialogInterface dialog, int item) {
-                                spectrumAverage=item;
+                                spectrumAverage = item;
                                 connection.setSpectrumAverage(item);
                                 dialog.dismiss();
                             }
@@ -1282,7 +1330,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 about.setTitle(R.string.about_menu_title);
                 about.show();
                 break;
-	/*	case MENU_DONATE:
+    /*	case MENU_DONATE:
 			builder = new AlertDialog.Builder(this);
 			builder.setTitle("Donate bitcoins");
 			builder.setMessage("Please donate bitcoins to help the project team to maintain the servers and upgrade the service.");
@@ -1308,7 +1356,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 dialog = null;
                 break;
         }
-        if(dialog != null) dialog.show();
+        if (dialog != null) dialog.show();
         return super.onOptionsItemSelected(item);
     }
 
@@ -1361,6 +1409,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         builder.show();
         return builder;
     }
+
     private AlertDialog.Builder enterServerManually() {
         AlertDialog.Builder builder;
 
@@ -1399,21 +1448,20 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
                 sameOldIp = true;
             }
         }
-        for (int l = 0; l < servers.length; l++) {
-            if(servers[l].toString().contentEquals(server)) {
+        for (CharSequence server1 : servers) {
+            if (server1.toString().contentEquals(server)) {
                 sameOldIp = true;
             }
         }
-        if(!sameOldIp) {
-            for(int i = 0; i< lastFewIpAddresses.length - 1; i++) {
-                lastFewIpAddresses[i+1] = lastFewIpAddresses[i];
-            }
+        if (!sameOldIp) {
+            System.arraycopy(lastFewIpAddresses, 0, lastFewIpAddresses, 1, lastFewIpAddresses.length - 1);
             lastFewIpAddresses[0] = server;
         }
     }
 
     /**
      * Detects if OpenGL ES 2.0 exists
+     *
      * @return true if it does
      */
     private boolean detectOpenGLES20() {
@@ -1424,7 +1472,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         return (info.reqGlEsVersion >= 0x20000);
     }
 
-    private boolean setConnectionDefaults(){
+    private boolean setConnectionDefaults() {
         boolean result;
         if (timer != null) timer.cancel();
         connection.setSpectrumView(spectrumView);
@@ -1432,7 +1480,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         connection.start(); //Crash here. Fix this.
         connection.sendCommand("*hardware?");
         connection.sendCommand("q-master");
-        connection.sendCommand("setClient SDR(" +this.getString(R.string.version)+")");
+        connection.sendCommand("setClient SDR(" + this.getString(R.string.version) + ")");
         connection.setFrequency(frequency);
         connection.setMode(mode);
         connection.setBand(band);
@@ -1440,7 +1488,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         connection.setGain(gain * 10);
         connection.setMicGain(micgain);
         connection.setAGC(agc);
-        connection.setAttenuator(att*10);
+        connection.setAttenuator(att * 10);
         connection.setAllowTx(tx_state[0]);
         spectrumView.setJogButtonDirection(jd_state[0]);
         connection.setTxUser(txUser);
@@ -1460,7 +1508,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         connection.setHasBeenSlave(false);
         timer = new Timer();
         timer.schedule(new answerTask(), 1000, 1000);
-        if (!result){
+        if (!result) {
             //Context context = getApplicationContext();
             int duration = Toast.LENGTH_LONG;
             Toast toast = Toast.makeText(this, getString(R.string.server_hint),
@@ -1476,25 +1524,25 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
         }
     }
 
-    private void mySetTitle(){
-        setTitle("SDR: "+server+" (rx"+receiver+") "+qAnswer);
+    private void mySetTitle() {
+        setTitle("SDR: " + server + " (rx" + receiver + ") " + qAnswer);
         mHandler.removeCallbacks(updateTitle);
         mHandler.postDelayed(updateTitle, 500);
     }
 
     private Runnable updateTitle = new Runnable() {
-        public void run(){
-            setTitle("SDR: "+server+" (r"+receiver+") "+ connection.getHardware()+" "+qAnswer);
+        public void run() {
+            setTitle("SDR: " + server + " (r" + receiver + ") " + connection.getHardware() + " " + qAnswer);
         }
     };
 
 
     class answerTask extends TimerTask {
         public void run() {
-            if (connection != null){
+            if (connection != null) {
                 qAnswer = connection.getAnswer();
                 connection.sendCommand("q-master");
-                if (connection.getIsSlave()){
+                if (connection.getIsSlave()) {
                     connection.sendCommand("q-info");
                 }
                 mHandler.removeCallbacks(updateTitle);
@@ -1524,9 +1572,9 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     private SpectrumView spectrumView;
 
 
-    private String lastFewIpAddresses[] = {"192.168.2.155","192.168.2.152"};
+    private String lastFewIpAddresses[] = {"192.168.2.155", "192.168.2.152"};
 
-    public static final CharSequence[] receivers = { "0", "1", "2", "3", "4","5","6","7" };
+    public static final CharSequence[] receivers = {"0", "1", "2", "3", "4", "5", "6", "7"};
 
     public int receiver = RX_0;
 
@@ -1535,11 +1583,11 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 
     public static final int MENU_DONATE = 19;
 
-    public static final CharSequence[] bands = { "160", "80", "60", "40", "30",
-            "20", "17", "15", "12", "10", "6", "GEN", "WWV", "Reset" };
+    public static final CharSequence[] bands = {"160", "80", "60", "40", "30",
+            "20", "17", "15", "12", "10", "6", "GEN", "WWV", "Reset"};
 
     private int band = BAND_20;
-    private long frequency=14200000L;
+    private long frequency = 14200000L;
 
     private long band_160_freq = 1850000L;
     private long band_80_freq = 3850000L;
@@ -1572,8 +1620,8 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 
     private int mode = MODE_USB;
 
-    public static final CharSequence[] modes = { "LSB", "USB", "DSB", "CWL",
-            "CWU", "FMN", "AM", "DIGU", "SPEC", "DIGL", "SAM", "DRM" };
+    public static final CharSequence[] modes = {"LSB", "USB", "DSB", "CWL",
+            "CWU", "FMN", "AM", "DIGU", "SPEC", "DIGL", "SAM", "DRM"};
     public static final int MODE_LSB = 0;
     public static final int MODE_USB = 1;
     public static final int MODE_DSB = 2;
@@ -1595,7 +1643,7 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
 
     public int att;
 
-    public static final CharSequence[] dsps = { "NR", "ANF", "NB", "IQ CORRECTION", "RX DC Block" };
+    public static final CharSequence[] dsps = {"NR", "ANF", "NB", "IQ CORRECTION", "RX DC Block"};
 
     public static final int DSP_NR = 0;
     public static final int DSP_ANF = 1;
@@ -1603,46 +1651,46 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     public static final int DSP_IQ = 3;
     public static final int DSP_RXDC_BLOCK = 4;
 
-    private boolean[] dsp_state = { false, false, false, false, false };
+    private boolean[] dsp_state = {false, false, false, false, false};
 
-    public static final CharSequence[] txs = { "Allow Tx" };
-    public static final CharSequence[] jds = { "> Buttons Move Spectrum" };
+    public static final CharSequence[] txs = {"Allow Tx"};
+    public static final CharSequence[] jds = {"> Buttons Move Spectrum"};
     public static final int TX_ALLOW = 0;
     public static final int JOG_DIR_SPEC = 0;
-    public boolean[] tx_state = { false };
-    public boolean[] jd_state = { false };
+    public boolean[] tx_state = {false};
+    public boolean[] jd_state = {false};
 
-    public static final CharSequence[] gains = { "0", "10", "20", "30", "40",
-            "50", "60", "70", "80", "90", "100" };
+    public static final CharSequence[] gains = {"0", "10", "20", "30", "40",
+            "50", "60", "70", "80", "90", "100"};
 
     public int gain = 5;
 
-    public static final CharSequence[] micgains = { "default", "x2", "x4", "x8", "x16", "x32", "x64" };
+    public static final CharSequence[] micgains = {"default", "x2", "x4", "x8", "x16", "x32", "x64"};
 
     public int micgain = 0;
 
-    public static final CharSequence[] fpss = { "1", "2", "3", "4", "5",
-            "6", "7", "8", "9", "10", "11", "12", "13", "14", "15" };
+    public static final CharSequence[] fpss = {"1", "2", "3", "4", "5",
+            "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"};
 
     public int fps;
 
-    public static final CharSequence[] spectrumAverages = { "0", "1", "2", "3", "4", "5", "6", "7", "8"};
+    public static final CharSequence[] spectrumAverages = {"0", "1", "2", "3", "4", "5", "6", "7", "8"};
 
     private int spectrumAverage = 0;
 
-    public static final CharSequence[] ssbFilters = { "5.0k", "4.4k", "3.8k",
-            "3.3k", "2.9k", "2.7k", "2.4k", "2.1k", "1.8k", "1.0k" };
-    public static final CharSequence[] cwFilters = { "1.0k", "800", "750",
-            "600", "500", "400", "250", "100", "50", "25" };
-    public static final CharSequence[] amFilters = { "16.0k", "12.0k", "10.0k",
-            "8.0k", "6.6k", "5.2k", "4.0k", "3.1k", "2.9k", "2.0k" };
-    public static final CharSequence[] fmFilters = { "80.0k", "12.0k", "10.0k",
-            "8.0k", "6.6k", "5.2k", "4.0k", "3.1k", "2.9k", "2.0k" };
+    public static final CharSequence[] ssbFilters = {"5.0k", "4.4k", "3.8k",
+            "3.3k", "2.9k", "2.7k", "2.4k", "2.1k", "1.8k", "1.0k"};
+    public static final CharSequence[] cwFilters = {"1.0k", "800", "750",
+            "600", "500", "400", "250", "100", "50", "25"};
+    public static final CharSequence[] amFilters = {"16.0k", "12.0k", "10.0k",
+            "8.0k", "6.6k", "5.2k", "4.0k", "3.1k", "2.9k", "2.0k"};
+    public static final CharSequence[] fmFilters = {"80.0k", "12.0k", "10.0k",
+            "8.0k", "6.6k", "5.2k", "4.0k", "3.1k", "2.9k", "2.0k"};
 
     private int filter = FILTER_5;
     private CharSequence[] filters;
-    private int filterLow=150;
-    private int filterHigh=2875;
+    private int filterLow = 150;
+    private int filterHigh = 2875;
     private CustomAdapter filterAdapter;
 
     public static final int FILTER_0 = 0;
@@ -1674,10 +1722,9 @@ public class AHPSDRActivity extends Activity implements SensorEventListener {
     Renderer renderer = null;
 
     // constants for Bitcoin Donation
-    private static final String[] DONATION_ADDRESSES_MAINNET = { "12voruGfjz6LNTQeq8DyXD7U5kRQkfCTTW", "18rB6RA6Tc75sZCRGDyBbrtWd82RrpmEPo" };
-    private static final String[] DONATION_ADDRESSES_TESTNET = { "my16ohVdTJK5w5eba6AbTRLatsN3gpGLaK", "mg2Y2CRKK1ACQcNBEUVFRSM7pHeu4kBxuF" };
+    private static final String[] DONATION_ADDRESSES_MAINNET = {"12voruGfjz6LNTQeq8DyXD7U5kRQkfCTTW", "18rB6RA6Tc75sZCRGDyBbrtWd82RrpmEPo"};
+    private static final String[] DONATION_ADDRESSES_TESTNET = {"my16ohVdTJK5w5eba6AbTRLatsN3gpGLaK", "mg2Y2CRKK1ACQcNBEUVFRSM7pHeu4kBxuF"};
     private static final int REQUEST_CODE = 0;
-
 
 
 }

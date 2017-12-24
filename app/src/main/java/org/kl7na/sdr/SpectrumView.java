@@ -134,19 +134,19 @@ public class SpectrumView extends View implements OnTouchListener {
 
 			// display the frequency and mode
 			paint.setColor(Color.GREEN);
-			paint.setTextSize(30.0F);
+			paint.setTextSize(50.0F);
 			fs=String.format("%d.%03d.%03d", connection.getFrequency()/1000000,
 			                                       (connection.getFrequency()%1000000)/1000,
 			                                       (connection.getFrequency()%1000));
 			canvas.drawText(fs + " "
-					+ connection.getStringMode(), 100, 30, paint);
+					+ connection.getStringMode(), 100, 50, paint);
 
 			//DEBUG
 			//canvas.drawText(Integer.toString(waterfallLow), WIDTH/2, 30, paint);
 
 			if (vfoLocked) {
 				paint.setColor(Color.RED);
-				canvas.drawText("LOCKED", 300, 10, paint);
+				canvas.drawText("LOCKED", 300, 50, paint);
 			}
 
 			// plot the spectrum
