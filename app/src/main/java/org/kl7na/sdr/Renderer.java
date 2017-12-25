@@ -1,4 +1,4 @@
-/** 
+/*
  * The OpenGL renderer
  */
 
@@ -37,7 +37,7 @@ class Renderer implements GLSurfaceView.Renderer {
 	private float[] mScaleMatrix = new float[16];   // scaling
 	private float[] mVMatrix = new float[16]; 		// modelview
 
-	private final int MAX_CL_WIDTH = 2048;
+	private final int MAX_CL_WIDTH = 2*2560;
 	private final int MAX_CL_HEIGHT = 512;
 	
 	private Context mContext;
@@ -76,7 +76,7 @@ class Renderer implements GLSurfaceView.Renderer {
 	/***************************
 	 * CONSTRUCTOR(S)
 	 **************************/
-	public Renderer(Context context) {
+	Renderer(Context context) {
 
 		this.mContext = context;
 		
@@ -89,31 +89,31 @@ class Renderer implements GLSurfaceView.Renderer {
 	/*****************************
 	 * SET RENDER PARAMETERS
 	 *****************************/
-	
-	public void set_cy(int cy){
+
+	void set_cy(int cy){
 		this.cy = cy;
 		_cy = (float)cy / MAX_CL_HEIGHT;
 		GLES20.glUniform1f(cy_location, _cy);
 	}
 	
-	public void set_width(int width){
+	private void set_width(int width){
 		_width = (float)width/MAX_CL_WIDTH;
 		if (_width > 1.0) _width = 1.0f;
 		GLES20.glUniform1f(width_location, _width);
 	}
 	
-	public void set_LO_offset(float offset){
+	private void set_LO_offset(float offset){
 		_LO_offset = offset;
 		GLES20.glUniform1f(offset_location, _LO_offset);
 	}
 	
-	public void set_waterfallLow(int low){
+	void set_waterfallLow(int low){
 		_waterfallLow = low;
 		_waterfallLow /= 256.0;
 		GLES20.glUniform1f(waterfallLow_location, _waterfallLow);
 	}
 	
-	public void set_waterfallHigh(int high){
+	void set_waterfallHigh(int high){
 		_waterfallHigh = high;
 		_waterfallHigh /= 256.0;
 		GLES20.glUniform1f(waterfallHigh_location, _waterfallHigh);
@@ -265,7 +265,7 @@ class Renderer implements GLSurfaceView.Renderer {
 	}
 	
 	
-	public void plotWaterfall(final byte[] bitmap) {
+	void plotWaterfall(final byte[] bitmap) {
 		int width = bitmap.length;
 		if (width > MAX_CL_WIDTH) width = MAX_CL_WIDTH;		
 		ByteBuffer buffer = ByteBuffer.wrap(bitmap);
@@ -284,7 +284,7 @@ class Renderer implements GLSurfaceView.Renderer {
 	// debugging opengl
 	private void checkGlError(String op) {
 		int error;
-		while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
+		if ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
 			Log.e(TAG, op + ": glError " + error);
 			throw new RuntimeException(op + ": glError " + error);
 		}
